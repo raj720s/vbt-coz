@@ -16,6 +16,9 @@ import { withSimplifiedRBAC, SimplifiedRBACProps } from "@/components/auth/withS
 import type {
   ColDef,
   ICellRendererParams,
+  GridReadyEvent,
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
 } from "ag-grid-community";
 import { 
   AllCommunityModule, 
@@ -29,7 +32,8 @@ import {
   ExcelExportModule,
   SetFilterModule,
   ContextMenuModule,
-  ColumnMenuModule
+  ColumnMenuModule,
+  ServerSideRowModelModule,
 } from "ag-grid-enterprise";
 
 ModuleRegistry.registerModules([
@@ -39,6 +43,7 @@ ModuleRegistry.registerModules([
   SetFilterModule,
   ContextMenuModule,
   ColumnMenuModule,
+  ServerSideRowModelModule,
 ]);
 
 // Custom Cell Renderers
@@ -120,14 +125,6 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
   // Use RBAC context from withSimplifiedRBAC instead of duplicate hooks
   const { can, isAdmin, isSuperUser } = rbacContext || {};
   
-  // Local state for filtering and pagination
-  const [filters, setFilters] = useState<CustomerListRequest>({
-    page: 1,
-    page_size: 10,
-    order_by: "created_on",
-    order_type: "desc"
-  });
-
   const [globalFilter, setGlobalFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState<CustomerResponse | null>(null);
@@ -136,34 +133,9 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
   const canDeleteCustomer = can?.("DELETE_CUSTOMER") || isAdmin?.() || isSuperUser;
 
   // Local state for customers data
-  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
-
-  // Pagination state for AG Grid
-  const [paginationInfo, setPaginationInfo] = useState({
-    currentPage: 0,
-    totalPages: 0,
-    totalRecords: 0,
-    pageSize: 10,
-  });
-
-  // Load customers on component mount and when filters change
-  useEffect(() => {
-    loadCustomers();
-  }, [filters]);
-
-  // Sync grid pagination with our state when data loads
-  useEffect(() => {
-    if (gridRef.current && paginationInfo.totalRecords > 0) {
-      const api = gridRef.current.api;
-      // Set the current page in the grid
-      api.paginationGoToPage(paginationInfo.currentPage);
-      // Update the total row count
-      api.setGridOption('rowData', customers);
-    }
-  }, [paginationInfo, customers]);
 
   // Auto-clear errors after 5 seconds
   useEffect(() => {
@@ -175,36 +147,67 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
     }
   }, [error]);
 
-  // Load customers function
-  const loadCustomers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('Loading customers with filters:', filters);
-      const response = await customerService.getCustomers(filters);
-      console.log('API response:', response);
-      
-      setCustomers(response.results);
-      setTotal(response.count);
-      
-      // Update pagination info for AG Grid
-      const totalPages = Math.ceil((response.count || 0) / (filters.page_size || 10));
-      const paginationInfo = {
-        currentPage: (filters.page || 1) - 1, // Convert to 0-based for AG Grid
-        totalPages,
-        totalRecords: response.count || 0,
-        pageSize: filters.page_size || 10,
-      };
-      
-      console.log('Updated pagination info:', paginationInfo);
-      setPaginationInfo(paginationInfo);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load customers');
-      console.error('Error loading customers:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Create server-side datasource
+  const getServerSideDatasource = useCallback((searchTerm: string = ""): IServerSideDatasource => {
+    return {
+      getRows: async (params: IServerSideGetRowsParams) => {
+        console.log("[Datasource] - rows requested by grid: ", params.request);
+        
+        try {
+          setLoading(true);
+          setError(null);
+
+          // Calculate page number from startRow and endRow
+          const startRow = params.request.startRow || 0;
+          const endRow = params.request.endRow || 10;
+          const pageSize = endRow - startRow;
+          const page = Math.floor(startRow / pageSize) + 1;
+
+          // Build request parameters for your API
+          const requestParams: CustomerListRequest = {
+            page: page,
+            page_size: pageSize,
+            order_by: "created_on",
+            order_type: "desc"
+          };
+
+          // Add search filter if present
+          if (searchTerm) {
+            requestParams.name = searchTerm;
+          }
+
+          // Handle sorting from AG Grid
+          if (params.request.sortModel && params.request.sortModel.length > 0) {
+            const sortModel = params.request.sortModel[0];
+            requestParams.order_by = sortModel.colId;
+            requestParams.order_type = sortModel.sort;
+          }
+
+          // Call your API
+          const response = await customerService.getCustomers(requestParams);
+          
+          // Update total count for stats
+          setTotal(response.count || 0);
+
+          // Determine if this is the last row
+          const lastRow = response.count <= endRow ? response.count : undefined;
+
+          // Call success callback with data
+          params.success({
+            rowData: response.results || [],
+            rowCount: lastRow,
+          });
+
+        } catch (error: any) {
+          console.error('Error loading customers:', error);
+          setError(error.message || 'Failed to load customers');
+          params.fail();
+        } finally {
+          setLoading(false);
+        }
+      },
+    };
+  }, []);
 
   // Redirect to add page if action=add
   useEffect(() => {
@@ -298,7 +301,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 200,
       flex: 2,
       sortable: true,
-      filter: true,
+      filter: false, // Disable column-level filtering for server-side
       cellRenderer: NameRenderer,
     },
     {
@@ -307,7 +310,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: CodeRenderer,
     },
     {
@@ -316,7 +319,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       valueGetter: (params: any) => {
         // Extract company name from nested object for sorting/filtering
         const company = params.data?.company;
@@ -338,7 +341,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "email",
@@ -346,7 +349,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 200,
       flex: 1.5,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: EmailRenderer,
     },
     {
@@ -355,7 +358,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: PhoneRenderer,
     },
     {
@@ -364,7 +367,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: CountryRenderer,
     },
     {
@@ -373,7 +376,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: TaxIdRenderer,
     },
     {
@@ -382,7 +385,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 120,
       flex: 0.8,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: StatusRenderer,
     },
   ], [ActionsRenderer, CompanyRenderer]);
@@ -391,38 +394,10 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: true,
+    filter: false, // Disable default filtering for server-side
     flex: 1,
     minWidth: 100,
   }), []);
-
-  // Handle pagination changes
-  const onPaginationChanged = useCallback(() => {
-    if (gridRef.current) {
-      const api = gridRef.current.api;
-      const currentPage = api.paginationGetCurrentPage();
-      const pageSize = api.paginationGetPageSize();
-      
-      // Update filters with new page (convert from 0-based to 1-based)
-      const newPage = currentPage + 1;
-      
-      console.log('Pagination changed:', {
-        currentPage,
-        newPage,
-        pageSize,
-        currentFilters: filters
-      });
-      
-      if (newPage !== filters.page || pageSize !== filters.page_size) {
-        console.log('Updating filters with new pagination:', { newPage, pageSize });
-        setFilters(prev => ({
-          ...prev,
-          page: newPage,
-          page_size: pageSize,
-        }));
-      }
-    }
-  }, [filters.page, filters.page_size]);
 
   const handleDeleteConfirm = async () => {
     if (!deletingItem) return;
@@ -442,8 +417,12 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       setDeleteModalOpen(false);
       setDeletingItem(null);
       
-      // Refresh the list
-      await loadCustomers();
+      // Refresh data by updating the datasource
+      if (gridRef.current) {
+        const api = gridRef.current.api;
+        const datasource = getServerSideDatasource(globalFilter);
+        api.setGridOption('serverSideDatasource', datasource);
+      }
     } catch (error: any) {
       console.error('Error deleting customer:', error);
       toast.error(error.message || 'Failed to delete customer');
@@ -455,12 +434,36 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
 
   const handleSearch = (searchTerm: string) => {
     setGlobalFilter(searchTerm);
-    setFilters(prev => ({
-      ...prev,
-      name: searchTerm,
-      page: 1,
-    }));
+    
+    // Update the datasource with new search term
+    if (gridRef.current) {
+      const api = gridRef.current.api;
+      const datasource = getServerSideDatasource(searchTerm);
+      api.setGridOption('serverSideDatasource', datasource);
+    }
   };
+
+  // Handle grid ready event
+  const handleGridReady = useCallback((params: GridReadyEvent) => {
+    console.log('Grid ready event received');
+    
+    // Create and set the datasource
+    const datasource = getServerSideDatasource(globalFilter);
+    params.api!.setGridOption('serverSideDatasource', datasource);
+  }, [getServerSideDatasource, globalFilter]);
+
+  // Calculate dynamic height based on number of rows
+  const gridHeight = useMemo(() => {
+    const rowHeight = 42; // AG Grid default row height
+    const headerHeight = 48; // Header height
+    const paginationHeight = 56; // Pagination panel height
+    const padding = 16; // Extra padding
+    const pageSize = 10; // Default page size
+    
+    // Calculate height based on page size, but cap at reasonable max
+    const calculatedHeight = (pageSize * rowHeight) + headerHeight + paginationHeight + padding;
+    return Math.min(calculatedHeight, 600); // Max height of 600px
+  }, []);
 
   return (
     <div className="p-6">
@@ -520,10 +523,8 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {customers.filter(c => c.is_active).length}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">-</p>
             </div>
             <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
               <span className="text-green-600 dark:text-green-400 text-sm font-bold">✓</span>
@@ -533,10 +534,8 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Countries</p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {new Set(customers.map(c => c.country)).size}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</p>
             </div>
             <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
               <span className="text-purple-600 dark:text-purple-400 text-sm font-bold">🌍</span>
@@ -546,10 +545,8 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">With Tax ID</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {customers.filter(c => c.tax_id).length}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">-</p>
             </div>
             <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
               <span className="text-orange-600 dark:text-orange-400 text-sm font-bold">📄</span>
@@ -583,24 +580,31 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       {/* AG Grid Table */}
       <div
         className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
-        style={{ height: "600px" }}
+        style={{ height: `${gridHeight}px` }}
       >
         <AgGridReact
           ref={gridRef}
-          rowData={customers}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           loading={loading}
+          
+          // Server-side row model configuration
+          rowModelType="serverSide"
+          cacheBlockSize={10} // Number of rows per request
           pagination={true}
-          paginationPageSize={filters.page_size}
+          paginationPageSize={10}
           paginationAutoPageSize={false}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
+          
+          onGridReady={handleGridReady}
           domLayout="normal"
           animateRows={true}
           className="ag-theme-alpine"
-          onPaginationChanged={onPaginationChanged}
+          
           rowSelection={{ mode: "multiRow" }}
+          
+          // Default export configurations
           defaultCsvExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelected: true,

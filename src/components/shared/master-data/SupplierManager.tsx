@@ -16,6 +16,8 @@ import type {
   ColDef,
   GridReadyEvent,
   ICellRendererParams,
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
 } from "ag-grid-community";
 import { 
   AllCommunityModule, 
@@ -29,7 +31,8 @@ import {
   ExcelExportModule,
   SetFilterModule,
   ContextMenuModule,
-  ColumnMenuModule
+  ColumnMenuModule,
+  ServerSideRowModelModule,
 } from "ag-grid-enterprise";
 
 ModuleRegistry.registerModules([
@@ -39,6 +42,7 @@ ModuleRegistry.registerModules([
   SetFilterModule,
   ContextMenuModule,
   ColumnMenuModule,
+  ServerSideRowModelModule,
 ]);
 
 // Custom Cell Renderers
@@ -94,18 +98,10 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
   
   const { can, isAdmin, isSuperUser } = rbacContext || {};
   
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const gridRef = useRef<AgGridReact<Supplier>>(null);
-  
-  const [filters, setFilters] = useState<SupplierListRequest>({
-    page: 1,
-    page_size: 10,
-    order_by: "name",
-    order_type: "asc"
-  });
   
   const [globalFilter, setGlobalFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -120,11 +116,6 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
     }
   }, [action, router]);
 
-  // Load suppliers
-  useEffect(() => {
-    loadSuppliers();
-  }, [filters]);
-
   // Auto-clear errors
   useEffect(() => {
     if (error) {
@@ -135,20 +126,67 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
     }
   }, [error]);
 
-  const loadSuppliers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await supplierService.getSuppliers(filters);
-      setSuppliers(response.results || []);
-      setTotal(response.count || 0);
-    } catch (err: any) {
-      console.error('Error loading suppliers:', err);
-      setError(err.message || 'Failed to load suppliers');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Create server-side datasource
+  const getServerSideDatasource = useCallback((searchTerm: string = ""): IServerSideDatasource => {
+    return {
+      getRows: async (params: IServerSideGetRowsParams) => {
+        console.log("[Datasource] - rows requested by grid: ", params.request);
+        
+        try {
+          setLoading(true);
+          setError(null);
+
+          // Calculate page number from startRow and endRow
+          const startRow = params.request.startRow || 0;
+          const endRow = params.request.endRow || 10;
+          const pageSize = endRow - startRow;
+          const page = Math.floor(startRow / pageSize) + 1;
+
+          // Build request parameters for your API
+          const requestParams: SupplierListRequest = {
+            page: page,
+            page_size: pageSize,
+            order_by: "name",
+            order_type: "asc"
+          };
+
+          // Add search filter if present
+          if (searchTerm) {
+            requestParams.search = searchTerm;
+          }
+
+          // Handle sorting from AG Grid
+          if (params.request.sortModel && params.request.sortModel.length > 0) {
+            const sortModel = params.request.sortModel[0];
+            requestParams.order_by = sortModel.colId;
+            requestParams.order_type = sortModel.sort;
+          }
+
+          // Call your API
+          const response = await supplierService.getSuppliers(requestParams);
+          
+          // Update total count for stats
+          setTotal(response.count || 0);
+
+          // Determine if this is the last row
+          const lastRow = response.count <= endRow ? response.count : undefined;
+
+          // Call success callback with data
+          params.success({
+            rowData: response.results || [],
+            rowCount: lastRow,
+          });
+
+        } catch (error: any) {
+          console.error('Error loading suppliers:', error);
+          setError(error.message || 'Failed to load suppliers');
+          params.fail();
+        } finally {
+          setLoading(false);
+        }
+      },
+    };
+  }, []);
 
 
   const handleDeleteClick = (supplier: Supplier) => {
@@ -215,7 +253,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false, // Disable column-level filtering for server-side
       cellRenderer: CodeRenderer,
     },
     {
@@ -224,7 +262,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 200,
       flex: 2,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: NameRenderer,
     },
     {
@@ -233,7 +271,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 180,
       flex: 1.5,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "phone",
@@ -241,7 +279,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "country",
@@ -249,14 +287,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: "agSetColumnFilter",
-      filterParams: {
-        values: COUNTRIES.map(country => country.value),
-        valueFormatter: (params: any) => {
-          const country = COUNTRIES.find(c => c.value === params.value);
-          return country?.label || params.value;
-        },
-      },
+      filter: false, // Disable for server-side
     },
     {
       field: "is_active",
@@ -264,11 +295,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 120,
       flex: 0.8,
       sortable: true,
-      filter: "agSetColumnFilter",
-      filterParams: {
-        values: [true, false],
-        valueFormatter: (params: any) => (params.value ? "Active" : "Inactive"),
-      },
+      filter: false, // Disable for server-side
       cellRenderer: StatusRenderer,
     },
   ], [ActionsRenderer]);
@@ -277,7 +304,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: true,
+    filter: false, // Disable default filtering for server-side
     flex: 1,
     minWidth: 100,
   }), []);
@@ -298,7 +325,13 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       toast.success('Supplier deleted successfully');
       setDeleteModalOpen(false);
       setDeletingItem(null);
-      loadSuppliers();
+      
+      // Refresh data by updating the datasource
+      if (gridRef.current) {
+        const api = gridRef.current.api;
+        const datasource = getServerSideDatasource(globalFilter);
+        api.setGridOption('serverSideDatasource', datasource);
+      }
     } catch (error: any) {
       console.error('Error deleting supplier:', error);
       toast.error(error.message || 'Failed to delete supplier');
@@ -309,12 +342,36 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
 
   const handleSearch = (searchTerm: string) => {
     setGlobalFilter(searchTerm);
-    setFilters(prev => ({ 
-      ...prev,
-      search: searchTerm,
-      page: 1 
-    }));
+    
+    // Update the datasource with new search term
+    if (gridRef.current) {
+      const api = gridRef.current.api;
+      const datasource = getServerSideDatasource(searchTerm);
+      api.setGridOption('serverSideDatasource', datasource);
+    }
   };
+
+  // Handle grid ready event
+  const handleGridReady = useCallback((params: GridReadyEvent) => {
+    console.log('Grid ready event received');
+    
+    // Create and set the datasource
+    const datasource = getServerSideDatasource(globalFilter);
+    params.api!.setGridOption('serverSideDatasource', datasource);
+  }, [getServerSideDatasource, globalFilter]);
+
+  // Calculate dynamic height based on number of rows
+  const gridHeight = useMemo(() => {
+    const rowHeight = 42; // AG Grid default row height
+    const headerHeight = 48; // Header height
+    const paginationHeight = 56; // Pagination panel height
+    const padding = 16; // Extra padding
+    const pageSize = 10; // Default page size
+    
+    // Calculate height based on page size, but cap at reasonable max
+    const calculatedHeight = (pageSize * rowHeight) + headerHeight + paginationHeight + padding;
+    return Math.min(calculatedHeight, 600); // Max height of 600px
+  }, []);
 
   return (
     <div className="p-6">
@@ -364,22 +421,16 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Active Suppliers</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {suppliers.filter(s => s.is_active).length}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">-</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Suppliers</div>
-          <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {suppliers.filter(s => !s.is_active).length}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">-</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Countries</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {new Set(suppliers.map(s => s.country).filter(Boolean)).size}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
         </div>
       </div>
 
@@ -406,22 +457,30 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       </div>
 
       {/* AG Grid Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: '600px' }}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: `${gridHeight}px` }}>
         <AgGridReact
           ref={gridRef}
-          rowData={suppliers}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           loading={loading}
+          
+          // Server-side row model configuration
+          rowModelType="serverSide"
+          cacheBlockSize={10} // Number of rows per request
           pagination={true}
-          paginationPageSize={filters.page_size}
+          paginationPageSize={10}
           paginationAutoPageSize={false}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
+          
+          onGridReady={handleGridReady}
           domLayout="normal"
           animateRows={true}
           className="ag-theme-alpine"
+          
           rowSelection={{ mode: "multiRow" }}
+          
+          // Default export configurations
           defaultCsvExportParams={{
             fileName: `suppliers_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelected: true,

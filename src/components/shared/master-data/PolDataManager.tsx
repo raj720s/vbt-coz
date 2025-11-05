@@ -18,6 +18,8 @@ import type {
   CellClickedEvent,
   ValueFormatterParams,
   ICellRendererParams,
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
 } from "ag-grid-community";
 import {
   AllCommunityModule,
@@ -30,18 +32,20 @@ import {
 import {
   ExcelExportModule,
   SetFilterModule,
-  ContextMenuModule, // Add this import
-  ColumnMenuModule   // This is also useful for column header menus
+  ContextMenuModule,
+  ColumnMenuModule,
+  ServerSideRowModelModule, // Import the server-side row model module
 } from "ag-grid-enterprise";
 
-// Register modules including ContextMenuModule
+// Register modules including ServerSideRowModelModule
 ModuleRegistry.registerModules([
   AllCommunityModule,
   CsvExportModule,
   ExcelExportModule,
   SetFilterModule,
-  ContextMenuModule,    // This enables the right-click context menu
-  ColumnMenuModule,     // This enables column header menus (optional)
+  ContextMenuModule,
+  ColumnMenuModule,
+  ServerSideRowModelModule, // Register server-side row model
 ]);
 
 // Custom Cell Renderers (keeping existing ones)
@@ -94,19 +98,12 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
 
   const { can, isAdmin, isSuperUser } = rbacContext || {};
 
-  const [pols, setPols] = useState<POLResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const gridRef = useRef<AgGridReact<POLResponse>>(null);
 
-  const [filters, setFilters] = useState<POLListRequest>({
-    page: 1,
-    page_size: 10,
-    order_by: "created_on",
-    order_type: "desc"
-  });
-
+  // Global filter state for search functionality
   const [globalFilter, setGlobalFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState<POLResponse | null>(null);
@@ -120,11 +117,6 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
     }
   }, [action, router]);
 
-  // Load POL ports
-  useEffect(() => {
-    loadPOLs();
-  }, [filters]);
-
   // Auto-clear errors
   useEffect(() => {
     if (error) {
@@ -135,27 +127,66 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
     }
   }, [error]);
 
-  const loadPOLs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await polService.getPOLs(filters);
-      setPols(response.results || []);
-      setTotal(response.count || 0);
-    } catch (err: any) {
-      console.error('Error loading POL ports:', err);
-      setError(err.message || 'Failed to load POL ports');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Create server-side datasource
+  const getServerSideDatasource = useCallback((searchTerm: string = ""): IServerSideDatasource => {
+    return {
+      getRows: async (params: IServerSideGetRowsParams) => {
+        console.log("[Datasource] - rows requested by grid: ", params.request);
+        
+        try {
+          setLoading(true);
+          setError(null);
 
-  // Helper function to check if any rows are selected
-  const getSelectedRowsCount = useCallback(() => {
-    if (gridRef.current) {
-      return gridRef.current.api.getSelectedRows().length;
-    }
-    return 0;
+          // Calculate page number from startRow and endRow
+          const startRow = params.request.startRow || 0;
+          const endRow = params.request.endRow || 10;
+          const pageSize = endRow - startRow;
+          const page = Math.floor(startRow / pageSize) + 1;
+
+          // Build request parameters for your API
+          const requestParams: POLListRequest = {
+            page: page,
+            page_size: pageSize,
+            order_by: "created_on",
+            order_type: "desc"
+          };
+
+          // Add search filter if present
+          if (searchTerm) {
+            requestParams.name = searchTerm;
+          }
+
+          // Handle sorting from AG Grid
+          if (params.request.sortModel && params.request.sortModel.length > 0) {
+            const sortModel = params.request.sortModel[0];
+            requestParams.order_by = sortModel.colId;
+            requestParams.order_type = sortModel.sort;
+          }
+
+          // Call your API
+          const response = await polService.getPOLs(requestParams);
+          
+          // Update total count for stats
+          setTotal(response.count || 0);
+
+          // Determine if this is the last row
+          const lastRow = response.count <= endRow ? response.count : undefined;
+
+          // Call success callback with data
+          params.success({
+            rowData: response.results || [],
+            rowCount: lastRow,
+          });
+
+        } catch (error: any) {
+          console.error('Error loading POL ports:', error);
+          setError(error.message || 'Failed to load POL ports');
+          params.fail();
+        } finally {
+          setLoading(false);
+        }
+      },
+    };
   }, []);
 
   const handleDeleteClick = (pol: POLResponse) => {
@@ -214,7 +245,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       filter: false,
       suppressMovable: true,
       lockPosition: 'left',
-      checkboxSelection: false, // Disable checkbox for actions column
+      checkboxSelection: false,
     },
     {
       field: "code",
@@ -222,7 +253,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false, // Disable column-level filtering for server-side
       cellRenderer: CodeRenderer,
     },
     {
@@ -231,7 +262,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 200,
       flex: 2,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: NameRenderer,
     },
     {
@@ -240,7 +271,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "unlocode",
@@ -248,7 +279,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "timezone",
@@ -256,7 +287,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: TimezoneRenderer,
     },
     {
@@ -265,7 +296,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "longitude",
@@ -273,7 +304,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "is_active",
@@ -281,7 +312,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       minWidth: 120,
       flex: 0.8,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: StatusRenderer,
     },
   ], [ActionsRenderer]);
@@ -290,7 +321,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: true,
+    filter: false, // Disable default filtering for server-side
     flex: 1,
     minWidth: 100,
   }), []);
@@ -311,7 +342,13 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       toast.success('POL port deleted successfully');
       setDeleteModalOpen(false);
       setDeletingItem(null);
-      loadPOLs();
+      
+      // Refresh data by updating the datasource
+      if (gridRef.current) {
+        const api = gridRef.current.api;
+        const datasource = getServerSideDatasource(globalFilter);
+        api.setGridOption('serverSideDatasource', datasource);
+      }
     } catch (error: any) {
       console.error('Error deleting POL port:', error);
       toast.error(error.message || 'Failed to delete POL port');
@@ -322,12 +359,36 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
 
   const handleSearch = (searchTerm: string) => {
     setGlobalFilter(searchTerm);
-    setFilters(prev => ({
-      ...prev,
-      name: searchTerm,
-      page: 1
-    }));
+    
+    // Update the datasource with new search term
+    if (gridRef.current) {
+      const api = gridRef.current.api;
+      const datasource = getServerSideDatasource(searchTerm);
+      api.setGridOption('serverSideDatasource', datasource);
+    }
   };
+
+  // Handle grid ready event
+  const handleGridReady = useCallback((params: GridReadyEvent) => {
+    console.log('Grid ready event received');
+    
+    // Create and set the datasource
+    const datasource = getServerSideDatasource(globalFilter);
+    params.api!.setGridOption('serverSideDatasource', datasource);
+  }, [getServerSideDatasource, globalFilter]);
+
+  // Calculate dynamic height based on number of rows
+  const gridHeight = useMemo(() => {
+    const rowHeight = 42; // AG Grid default row height
+    const headerHeight = 48; // Header height
+    const paginationHeight = 56; // Pagination panel height
+    const padding = 16; // Extra padding
+    const pageSize = 10; // Default page size
+    
+    // Calculate height based on page size, but cap at reasonable max
+    const calculatedHeight = (pageSize * rowHeight) + headerHeight + paginationHeight + padding;
+    return Math.min(calculatedHeight, 600); // Max height of 600px
+  }, []);
 
   return (
     <div className="p-0">
@@ -377,75 +438,74 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Active Ports</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {pols.filter(p => p.is_active).length}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">-</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Countries</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {new Set(pols.map(p => p.country)).size}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Timezone Zones</div>
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-            {new Set(pols.map(p => p.timezone)).size}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">-</div>
         </div>
       </div>
 
-      {/* Filters - Removed export options from filter section */}
-  
-          <div className="flex flex-col lg:flex-row gap-4 py-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Search ports by Port Name"
-                value={globalFilter}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                onClick={() => router.push('/port-customer-master/pol-ports/add')}
-                className="flex items-center gap-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white whitespace-nowrap"
-              >
-                <PlusIcon className="w-4 h-4" />
-                Add POL Port
-              </Button>
-            </div>
-          </div>
-    
+      {/* Filters */}
+      <div className="flex flex-col lg:flex-row gap-4 py-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search ports by Port Name"
+            value={globalFilter}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="max-w-md"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            onClick={() => router.push('/port-customer-master/pol-ports/add')}
+            className="flex items-center gap-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white whitespace-nowrap"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add POL Port
+          </Button>
+        </div>
+      </div>
 
       {/* AG Grid Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: '600px' }}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: `${gridHeight}px` }}>
         <AgGridReact
           ref={gridRef}
-          rowData={pols}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           loading={loading}
+          
+          // Server-side row model configuration
+          rowModelType="serverSide"
+          cacheBlockSize={10} // Number of rows per request
           pagination={true}
-          paginationPageSize={filters.page_size}
+          paginationPageSize={10}
           paginationAutoPageSize={false}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
+          
+          onGridReady={handleGridReady}
           domLayout="normal"
           animateRows={true}
           className="ag-theme-alpine"
-          rowSelection={{ mode: "multiRow" }} // Enable multi-row selection
-          // Add these properties to configure default export behavior
+          
+          rowSelection={{ mode: "multiRow" }}
+          
+          // Default export configurations
           defaultCsvExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelected: true, // This will make context menu CSV export only selected rows
+            onlySelected: true,
           }}
           defaultExcelExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "POL Ports",
-            onlySelected: true, // This will make context menu Excel export only selected rows
+            onlySelected: true,
           }}
         />
       </div>
@@ -475,5 +535,4 @@ export default withSimplifiedRBAC(PolDataManager, {
   redirectTo: "/dashboard"
 });
 
-// DEBUG: This component should have role [1, 2, 3]
 console.log('🔐 PolDataManager loaded with role config:', [1, 2, 3]);

@@ -18,6 +18,8 @@ import type {
   CellClickedEvent,
   ValueFormatterParams,
   ICellRendererParams,
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
 } from "ag-grid-community";
 import { 
   AllCommunityModule, 
@@ -31,7 +33,8 @@ import {
   ExcelExportModule,
   SetFilterModule,
   ContextMenuModule,
-  ColumnMenuModule
+  ColumnMenuModule,
+  ServerSideRowModelModule,
 } from "ag-grid-enterprise";
 
 ModuleRegistry.registerModules([
@@ -41,6 +44,7 @@ ModuleRegistry.registerModules([
   SetFilterModule,
   ContextMenuModule,
   ColumnMenuModule,
+  ServerSideRowModelModule,
 ]);
 
 // Custom Cell Renderers
@@ -96,18 +100,10 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
   
   const { can, isAdmin, isSuperUser } = rbacContext || {};
   
-  const [pods, setPods] = useState<PODResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const gridRef = useRef<AgGridReact<PODResponse>>(null);
-  
-  const [filters, setFilters] = useState<PODListRequest>({
-    page: 1,
-    page_size: 10,
-    order_by: "created_on",
-    order_type: "desc"
-  });
   
   const [globalFilter, setGlobalFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -122,11 +118,6 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
     }
   }, [action, router]);
 
-  // Load POD ports
-  useEffect(() => {
-    loadPODs();
-  }, [filters]);
-
   // Auto-clear errors
   useEffect(() => {
     if (error) {
@@ -137,20 +128,67 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
     }
   }, [error]);
 
-  const loadPODs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await podService.getPODs(filters);
-      setPods(response.results || []);
-      setTotal(response.count || 0);
-    } catch (err: any) {
-      console.error('Error loading POD ports:', err);
-      setError(err.message || 'Failed to load POD ports');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Create server-side datasource
+  const getServerSideDatasource = useCallback((searchTerm: string = ""): IServerSideDatasource => {
+    return {
+      getRows: async (params: IServerSideGetRowsParams) => {
+        console.log("[Datasource] - rows requested by grid: ", params.request);
+        
+        try {
+          setLoading(true);
+          setError(null);
+
+          // Calculate page number from startRow and endRow
+          const startRow = params.request.startRow || 0;
+          const endRow = params.request.endRow || 10;
+          const pageSize = endRow - startRow;
+          const page = Math.floor(startRow / pageSize) + 1;
+
+          // Build request parameters for your API
+          const requestParams: PODListRequest = {
+            page: page,
+            page_size: pageSize,
+            order_by: "created_on",
+            order_type: "desc"
+          };
+
+          // Add search filter if present
+          if (searchTerm) {
+            requestParams.name = searchTerm;
+          }
+
+          // Handle sorting from AG Grid
+          if (params.request.sortModel && params.request.sortModel.length > 0) {
+            const sortModel = params.request.sortModel[0];
+            requestParams.order_by = sortModel.colId;
+            requestParams.order_type = sortModel.sort;
+          }
+
+          // Call your API
+          const response = await podService.getPODs(requestParams);
+          
+          // Update total count for stats
+          setTotal(response.count || 0);
+
+          // Determine if this is the last row
+          const lastRow = response.count <= endRow ? response.count : undefined;
+
+          // Call success callback with data
+          params.success({
+            rowData: response.results || [],
+            rowCount: lastRow,
+          });
+
+        } catch (error: any) {
+          console.error('Error loading POD ports:', error);
+          setError(error.message || 'Failed to load POD ports');
+          params.fail();
+        } finally {
+          setLoading(false);
+        }
+      },
+    };
+  }, []);
 
 
   const handleDeleteClick = (pod: PODResponse) => {
@@ -217,7 +255,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false, // Disable column-level filtering for server-side
       cellRenderer: CodeRenderer,
     },
     {
@@ -226,7 +264,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 200,
       flex: 2,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: NameRenderer,
     },
     {
@@ -235,7 +273,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "unlocode",
@@ -243,7 +281,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "timezone",
@@ -251,7 +289,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: TimezoneRenderer,
     },
     {
@@ -260,7 +298,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "longitude",
@@ -268,7 +306,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       field: "is_active",
@@ -276,7 +314,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       minWidth: 120,
       flex: 0.8,
       sortable: true,
-      filter: true,
+      filter: false,
       cellRenderer: StatusRenderer,
     },
   ], [ActionsRenderer]);
@@ -285,7 +323,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: true,
+    filter: false, // Disable default filtering for server-side
     flex: 1,
     minWidth: 100,
   }), []);
@@ -306,7 +344,13 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       toast.success('POD port deleted successfully');
       setDeleteModalOpen(false);
       setDeletingItem(null);
-      loadPODs();
+      
+      // Refresh data by updating the datasource
+      if (gridRef.current) {
+        const api = gridRef.current.api;
+        const datasource = getServerSideDatasource(globalFilter);
+        api.setGridOption('serverSideDatasource', datasource);
+      }
     } catch (error: any) {
       console.error('Error deleting POD port:', error);
       toast.error(error.message || 'Failed to delete POD port');
@@ -357,12 +401,36 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
 
   const handleSearch = (searchTerm: string) => {
     setGlobalFilter(searchTerm);
-    setFilters(prev => ({ 
-      ...prev,
-      name: searchTerm,
-      page: 1 
-    }));
+    
+    // Update the datasource with new search term
+    if (gridRef.current) {
+      const api = gridRef.current.api;
+      const datasource = getServerSideDatasource(searchTerm);
+      api.setGridOption('serverSideDatasource', datasource);
+    }
   };
+
+  // Handle grid ready event
+  const handleGridReady = useCallback((params: GridReadyEvent) => {
+    console.log('Grid ready event received');
+    
+    // Create and set the datasource
+    const datasource = getServerSideDatasource(globalFilter);
+    params.api!.setGridOption('serverSideDatasource', datasource);
+  }, [getServerSideDatasource, globalFilter]);
+
+  // Calculate dynamic height based on number of rows
+  const gridHeight = useMemo(() => {
+    const rowHeight = 42; // AG Grid default row height
+    const headerHeight = 48; // Header height
+    const paginationHeight = 56; // Pagination panel height
+    const padding = 16; // Extra padding
+    const pageSize = 10; // Default page size
+    
+    // Calculate height based on page size, but cap at reasonable max
+    const calculatedHeight = (pageSize * rowHeight) + headerHeight + paginationHeight + padding;
+    return Math.min(calculatedHeight, 600); // Max height of 600px
+  }, []);
 
   return (
     <div>
@@ -412,22 +480,16 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Active Ports</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {pods.filter(p => p.is_active).length}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">-</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Countries</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {new Set(pods.map(p => p.country)).size}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Timezone Zones</div>
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-            {new Set(pods.map(p => p.timezone)).size}
-          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">-</div>
         </div>
       </div>
 
@@ -454,22 +516,30 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       </div>
 
       {/* AG Grid Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: 'auto' }}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: `${gridHeight}px` }}>
         <AgGridReact
           ref={gridRef}
-          rowData={pods}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           loading={loading}
+          
+          // Server-side row model configuration
+          rowModelType="serverSide"
+          cacheBlockSize={10} // Number of rows per request
           pagination={true}
-          paginationPageSize={filters.page_size}
+          paginationPageSize={10}
           paginationAutoPageSize={false}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
+          
+          onGridReady={handleGridReady}
           domLayout="normal"
           animateRows={true}
           className="ag-theme-alpine"
+          
           rowSelection={{ mode: "multiRow" }}
+          
+          // Default export configurations
           defaultCsvExportParams={{
             fileName: `pod_ports_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelected: true,
