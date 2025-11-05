@@ -1,0 +1,183 @@
+{
+  "polPorts": [
+    {
+      "id": "1",
+      "code": "CNSHA",
+      "name": "Shanghai",
+      "country": "China",
+      "region": "Asia Pacific",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 31.2304,
+        "longitude": 121.4737
+      },
+      "portDetails": {
+        "timezone": "Asia/Shanghai",
+        "operatingHours": "24/7",
+        "maxDraft": 15.5,
+        "capacity": "TEU/year: 47,030,000",
+        "facilities": ["Container Terminal", "Ro-Ro Terminal", "Bulk Terminal"]
+      },
+      "shippingLines": ["COSCO", "OOCL", "Evergreen", "CMA CGM", "MSC"],
+      "averageTransitDays": {
+        "USLAX": 14,
+        "NLRTM": 28,
+        "DEHAM": 32
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "code": "CNNGB",
+      "name": "Ningbo",
+      "country": "China",
+      "region": "Asia Pacific",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 29.8667,
+        "longitude": 121.5500
+      },
+      "portDetails": {
+        "timezone": "Asia/Shanghai",
+        "operatingHours": "24/7",
+        "maxDraft": 18.0,
+        "capacity": "TEU/year: 31,080,000",
+        "facilities": ["Container Terminal", "Bulk Terminal", "Liquid Bulk Terminal"]
+      },
+      "shippingLines": ["COSCO", "MSC", "CMA CGM", "Hapag-Lloyd", "ONE"],
+      "averageTransitDays": {
+        "USLAX": 15,
+        "NLRTM": 29,
+        "DEHAM": 33
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "3",
+      "code": "CNTAO",
+      "name": "Qingdao",
+      "country": "China",
+      "region": "Asia Pacific",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 36.0986,
+        "longitude": 120.3719
+      },
+      "portDetails": {
+        "timezone": "Asia/Shanghai",
+        "operatingHours": "24/7",
+        "maxDraft": 20.0,
+        "capacity": "TEU/year: 24,030,000",
+        "facilities": ["Container Terminal", "Ore Terminal", "Oil Terminal"]
+      },
+      "shippingLines": ["COSCO", "Yang Ming", "Evergreen", "K Line", "MSC"],
+      "averageTransitDays": {
+        "USLAX": 16,
+        "NLRTM": 30,
+        "DEHAM": 34
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "4",
+      "code": "CNYTN",
+      "name": "Yantian",
+      "country": "China",
+      "region": "Asia Pacific",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 22.5833,
+        "longitude": 114.2167
+      },
+      "portDetails": {
+        "timezone": "Asia/Shanghai",
+        "operatingHours": "24/7",
+        "maxDraft": 16.5,
+        "capacity": "TEU/year: 13,770,000",
+        "facilities": ["Container Terminal", "International Terminal"]
+      },
+      "shippingLines": ["COSCO", "MSC", "CMA CGM", "Maersk", "OOCL"],
+      "averageTransitDays": {
+        "USLAX": 13,
+        "NLRTM": 27,
+        "DEHAM": 31
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "5",
+      "code": "CNTXG",
+      "name": "Tianjin",
+      "country": "China",
+      "region": "Asia Pacific",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 39.1042,
+        "longitude": 117.2000
+      },
+      "portDetails": {
+        "timezone": "Asia/Shanghai",
+        "operatingHours": "24/7",
+        "maxDraft": 19.0,
+        "capacity": "TEU/year: 20,270,000",
+        "facilities": ["Container Terminal", "Coal Terminal", "Ore Terminal"]
+      },
+      "shippingLines": ["COSCO", "CMA CGM", "Evergreen", "OOCL", "Hapag-Lloyd"],
+      "averageTransitDays": {
+        "USLAX": 17,
+        "NLRTM": 31,
+        "DEHAM": 35
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "6",
+      "code": "CNDLC",
+      "name": "Dalian",
+      "country": "China",
+      "region": "Asia Pacific",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 38.9140,
+        "longitude": 121.6147
+      },
+      "portDetails": {
+        "timezone": "Asia/Shanghai",
+        "operatingHours": "24/7",
+        "maxDraft": 17.0,
+        "capacity": "TEU/year: 10,930,000",
+        "facilities": ["Container Terminal", "Bulk Terminal", "Oil Terminal"]
+      },
+      "shippingLines": ["COSCO", "Yang Ming", "K Line", "MSC", "ONE"],
+      "averageTransitDays": {
+        "USLAX": 18,
+        "NLRTM": 32,
+        "DEHAM": 36
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2024-01-15T10:00:00Z",
+    "description": "Port of Loading (POL) master data for container shipping operations",
+    "regions": [
+      {
+        "name": "Asia Pacific",
+        "countries": ["China", "Japan", "South Korea", "Singapore", "Malaysia", "Thailand"],
+        "description": "Primary export region for manufacturing goods"
+      }
+    ],
+    "validation": {
+      "portCodeFormat": "UN/LOCODE standard (2-letter country code + 3-letter location code)",
+      "requiredFields": ["code", "name", "country", "region", "isActive"]
+    }
+  }
+}
+

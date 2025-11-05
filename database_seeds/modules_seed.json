@@ -1,0 +1,103 @@
+{
+  "modules": [
+    {
+      "id": 10,
+      "name": "Role Management",
+      "description": "Manage system roles and role configurations",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 20,
+      "name": "Privilege Management",
+      "description": "Manage system privileges and permissions",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 30,
+      "name": "Role Permission Management",
+      "description": "Manage role-permission assignments and configurations",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 40,
+      "name": "User Management",
+      "description": "Manage users, user profiles, and user operations",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 50,
+      "name": "Container Management",
+      "description": "Manage container types, thresholds, and planning",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 60,
+      "name": "Port & Customer Management",
+      "description": "Manage ports, customers, and port-customer relationships",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 70,
+      "name": "Shipment Operations",
+      "description": "Manage shipment uploads, processing, and operations",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 75,
+      "name": "Shipment Order Management",
+      "description": "Manage vendor booking shipment orders and container assignments",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 80,
+      "name": "Analytics & Reports",
+      "description": "View analytics, validation results, and generate reports",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 90,
+      "name": "System Administration",
+      "description": "System settings, data backup, and administrative tasks",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 100,
+      "name": "Dashboard",
+      "description": "Main dashboard and overview",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    }
+  ]
+}

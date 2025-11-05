@@ -1,0 +1,220 @@
+{
+  "podPorts": [
+    {
+      "id": "1",
+      "code": "USLAX",
+      "name": "Los Angeles",
+      "country": "USA",
+      "region": "North America",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 33.7390,
+        "longitude": -118.2637
+      },
+      "portDetails": {
+        "timezone": "America/Los_Angeles",
+        "operatingHours": "24/7",
+        "maxDraft": 16.5,
+        "capacity": "TEU/year: 9,337,000",
+        "facilities": ["Container Terminal", "Intermodal Terminal", "Cruise Terminal"]
+      },
+      "shippingLines": ["Maersk", "MSC", "CMA CGM", "Evergreen", "COSCO"],
+      "destinationDetails": {
+        "mainMarkets": ["California", "Nevada", "Arizona", "Utah"],
+        "railConnections": ["BNSF", "Union Pacific"],
+        "averageDeliveryDays": {
+          "California": 1,
+          "Nevada": 2,
+          "Arizona": 3,
+          "Utah": 4
+        }
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "code": "NLRTM",
+      "name": "Rotterdam",
+      "country": "Netherlands",
+      "region": "Europe",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 51.9244,
+        "longitude": 4.4777
+      },
+      "portDetails": {
+        "timezone": "Europe/Amsterdam",
+        "operatingHours": "24/7",
+        "maxDraft": 24.0,
+        "capacity": "TEU/year: 15,280,000",
+        "facilities": ["Container Terminal", "Chemical Terminal", "Breakbulk Terminal"]
+      },
+      "shippingLines": ["Maersk", "MSC", "CMA CGM", "Hapag-Lloyd", "ONE"],
+      "destinationDetails": {
+        "mainMarkets": ["Netherlands", "Germany", "Belgium", "Switzerland"],
+        "railConnections": ["DB Cargo", "Rail Cargo Group"],
+        "averageDeliveryDays": {
+          "Netherlands": 1,
+          "Germany": 2,
+          "Belgium": 1,
+          "Switzerland": 3
+        }
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "3",
+      "code": "DEHAM",
+      "name": "Hamburg",
+      "country": "Germany",
+      "region": "Europe",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 53.5511,
+        "longitude": 9.9937
+      },
+      "portDetails": {
+        "timezone": "Europe/Berlin",
+        "operatingHours": "24/7",
+        "maxDraft": 15.1,
+        "capacity": "TEU/year: 8,470,000",
+        "facilities": ["Container Terminal", "Multipurpose Terminal", "Passenger Terminal"]
+      },
+      "shippingLines": ["Hapag-Lloyd", "MSC", "Maersk", "CMA CGM", "Yang Ming"],
+      "destinationDetails": {
+        "mainMarkets": ["Germany", "Austria", "Czech Republic", "Poland"],
+        "railConnections": ["DB Cargo", "PKP Cargo"],
+        "averageDeliveryDays": {
+          "Germany": 1,
+          "Austria": 2,
+          "Czech Republic": 2,
+          "Poland": 3
+        }
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "4",
+      "code": "USNYC",
+      "name": "New York",
+      "country": "USA",
+      "region": "North America",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 40.7282,
+        "longitude": -74.0776
+      },
+      "portDetails": {
+        "timezone": "America/New_York",
+        "operatingHours": "24/7",
+        "maxDraft": 15.2,
+        "capacity": "TEU/year: 7,410,000",
+        "facilities": ["Container Terminal", "Breakbulk Terminal", "Auto Terminal"]
+      },
+      "shippingLines": ["Maersk", "MSC", "CMA CGM", "COSCO", "Evergreen"],
+      "destinationDetails": {
+        "mainMarkets": ["New York", "New Jersey", "Pennsylvania", "Connecticut"],
+        "railConnections": ["CSX", "Norfolk Southern"],
+        "averageDeliveryDays": {
+          "New York": 1,
+          "New Jersey": 1,
+          "Pennsylvania": 2,
+          "Connecticut": 1
+        }
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "5",
+      "code": "GBLON",
+      "name": "London",
+      "country": "United Kingdom",
+      "region": "Europe",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 51.5074,
+        "longitude": -0.1278
+      },
+      "portDetails": {
+        "timezone": "Europe/London",
+        "operatingHours": "24/7",
+        "maxDraft": 12.8,
+        "capacity": "TEU/year: 2,790,000",
+        "facilities": ["Container Terminal", "Thames Gateway Terminal"]
+      },
+      "shippingLines": ["MSC", "Maersk", "CMA CGM", "Hapag-Lloyd", "OOCL"],
+      "destinationDetails": {
+        "mainMarkets": ["England", "Scotland", "Wales", "Northern Ireland"],
+        "railConnections": ["DB Cargo UK", "Freightliner"],
+        "averageDeliveryDays": {
+          "England": 1,
+          "Scotland": 2,
+          "Wales": 2,
+          "Northern Ireland": 3
+        }
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "7",
+      "code": "DEGER",
+      "name": "German Destinations",
+      "country": "Germany",
+      "region": "Europe",
+      "isActive": true,
+      "coordinates": {
+        "latitude": 51.3397,
+        "longitude": 12.3731
+      },
+      "portDetails": {
+        "timezone": "Europe/Berlin",
+        "operatingHours": "24/7",
+        "maxDraft": 15.0,
+        "capacity": "TEU/year: 5,000,000",
+        "facilities": ["Container Terminal", "Intermodal Terminal", "Distribution Center"]
+      },
+      "shippingLines": ["Hapag-Lloyd", "MSC", "Maersk", "CMA CGM", "COSCO"],
+      "destinationDetails": {
+        "mainMarkets": ["Germany", "Central Europe"],
+        "railConnections": ["DB Cargo", "ÖBB", "ČD Cargo"],
+        "averageDeliveryDays": {
+          "HALDENSLEBEN": 1,
+          "PEINE": 1,
+          "ROTTENDORF": 2,
+          "APFELSTÄDT": 2,
+          "WITTENBERGE": 1,
+          "LANGENSELBOLD": 2
+        }
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2024-01-15T10:00:00Z",
+    "description": "Port of Discharge (POD) master data for container shipping operations",
+    "regions": [
+      {
+        "name": "North America",
+        "countries": ["USA", "Canada", "Mexico"],
+        "description": "Primary import region for consumer goods"
+      },
+      {
+        "name": "Europe",
+        "countries": ["Netherlands", "Germany", "United Kingdom", "Belgium", "France"],
+        "description": "Major import region with extensive rail networks"
+      }
+    ],
+    "validation": {
+      "portCodeFormat": "UN/LOCODE standard (2-letter country code + 3-letter location code)",
+      "requiredFields": ["code", "name", "country", "region", "isActive"]
+    }
+  }
+}
+

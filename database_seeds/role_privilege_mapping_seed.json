@@ -1,0 +1,173 @@
+{
+  "role_privilege_mappings": [
+    {
+      "role_id": 1,
+      "role_name": "Admin",
+      "privileges": [
+        {
+          "module_id": 10,
+          "privileges": [
+            "CREATE_ROLE", "UPDATE_ROLE", "DELETE_ROLE", "VIEW_ROLE", "VIEW_ROLE_LIST",
+            "CREATE_ROLE_PERMISSION", "VIEW_ROLE_PERMISSION_LIST"
+          ]
+        },
+        {
+          "module_id": 20,
+          "privileges": [
+            "VIEW_PRIVILEGE_LIST"
+          ]
+        },
+        {
+          "module_id": 30,
+          "privileges": [
+            "CREATE_ROLE_PERMISSION", "VIEW_ROLE_PERMISSION_LIST"
+          ]
+        },
+        {
+          "module_id": 40,
+          "privileges": [
+            "CREATE_USER", "UPDATE_USER", "DELETE_USER", "VIEW_USER", "VIEW_USER_LIST",
+            "VIEW_USER_SHORT_INFO_LIST", "UPDATE_USER_PASSWORD", "UPDATE_USER_STATUS"
+          ]
+        },
+        {
+          "module_id": 50,
+          "privileges": [
+            "VIEW_CONTAINER_TYPES", "CREATE_CONTAINER_TYPE", "UPDATE_CONTAINER_TYPE", "DELETE_CONTAINER_TYPE",
+            "VIEW_CONTAINER_THRESHOLDS", "CREATE_THRESHOLD", "UPDATE_THRESHOLD", "DELETE_THRESHOLD",
+            "VIEW_CONTAINER_PRIORITY", "CREATE_PRIORITY", "UPDATE_PRIORITY", "DELETE_PRIORITY",
+            "VIEW_CONTAINER_PLANNING", "CREATE_PLAN", "UPDATE_PLAN", "DELETE_PLAN"
+          ]
+        },
+        {
+          "module_id": 60,
+          "privileges": [
+            "VIEW_PORT_CUSTOMER_MASTER", "VIEW_POL_PORTS", "VIEW_POD_PORTS", "VIEW_CUSTOMERS",
+            "CREATE_PORT", "UPDATE_PORT", "DELETE_PORT", "CREATE_CUSTOMER", "UPDATE_CUSTOMER", "DELETE_CUSTOMER",
+            "EXPORT_CUSTOMERS", "EXPORT_POL_PORTS", "EXPORT_POD_PORTS"
+          ]
+        },
+        {
+          "module_id": 70,
+          "privileges": [
+            "VIEW_SHIPMENT_UPLOAD", "CREATE_SHIPMENT", "UPDATE_SHIPMENT", "DELETE_SHIPMENT",
+            "VIEW_SHIPMENT_HISTORY", "VIEW_UPLOADS_HISTORY", "VIEW_INPUT_FILE", "VIEW_OUTPUT_FILE",
+            "UPLOAD_SHIPMENT_FILE", "PROCESS_SHIPMENT", "EXPORT_SHIPMENT_DATA"
+          ]
+        },
+        {
+          "module_id": 80,
+          "privileges": [
+            "VIEW_ASSIGNMENT_RESULTS", "VIEW_VALIDATION_SUMMARY", "VIEW_REPOSITIONING_SUMMARY", "VIEW_TEST_VALIDATION",
+            "EXPORT_ASSIGNMENT_DATA", "EXPORT_VALIDATION_DATA", "EXPORT_REPOSITIONING_DATA", "RUN_TEST_VALIDATION"
+          ]
+        },
+        {
+          "module_id": 90,
+          "privileges": [
+            "VIEW_SYSTEM_SETTINGS", "UPDATE_SYSTEM_SETTINGS", "DELETE_SYSTEM_SETTINGS",
+            "VIEW_DATA_BACKUP", "CREATE_DATA_BACKUP", "RESTORE_DATA_BACKUP", "DELETE_DATA_BACKUP"
+          ]
+        },
+        {
+          "module_id": 100,
+          "privileges": [
+            "VIEW_DASHBOARD", "VIEW_USER_DASHBOARD", "VIEW_ADMIN_DASHBOARD"
+          ]
+        }
+      ]
+    },
+    {
+      "role_id": 2,
+      "role_name": "Manager",
+      "privileges": [
+        {
+          "module_id": 20,
+          "privileges": [
+            "VIEW_PRIVILEGE_LIST"
+          ]
+        },
+        {
+          "module_id": 40,
+          "privileges": [
+            "VIEW_USER", "VIEW_USER_LIST", "VIEW_USER_SHORT_INFO_LIST", "UPDATE_USER", "UPDATE_USER_STATUS"
+          ]
+        },
+        {
+          "module_id": 60,
+          "privileges": [
+            "VIEW_PORT_CUSTOMER_MASTER", "VIEW_POL_PORTS", "VIEW_POD_PORTS", "VIEW_CUSTOMERS",
+            "CREATE_PORT", "UPDATE_PORT", "CREATE_CUSTOMER", "UPDATE_CUSTOMER",
+            "EXPORT_CUSTOMERS", "EXPORT_POL_PORTS", "EXPORT_POD_PORTS"
+          ]
+        },
+        {
+          "module_id": 70,
+          "privileges": [
+            "VIEW_SHIPMENT_UPLOAD", "VIEW_SHIPMENT_HISTORY", "VIEW_UPLOADS_HISTORY", "VIEW_INPUT_FILE", "VIEW_OUTPUT_FILE",
+            "UPLOAD_SHIPMENT_FILE", "PROCESS_SHIPMENT", "EXPORT_SHIPMENT_DATA"
+          ]
+        },
+        {
+          "module_id": 80,
+          "privileges": [
+            "VIEW_ASSIGNMENT_RESULTS", "VIEW_VALIDATION_SUMMARY", "VIEW_REPOSITIONING_SUMMARY",
+            "EXPORT_ASSIGNMENT_DATA", "EXPORT_VALIDATION_DATA", "EXPORT_REPOSITIONING_DATA"
+          ]
+        },
+        {
+          "module_id": 100,
+          "privileges": [
+            "VIEW_DASHBOARD", "VIEW_USER_DASHBOARD", "VIEW_ADMIN_DASHBOARD"
+          ]
+        }
+      ]
+    },
+    {
+      "role_id": 3,
+      "role_name": "User",
+      "privileges": [
+        {
+          "module_id": 40,
+          "privileges": [
+            "VIEW_USER", "VIEW_USER_SHORT_INFO_LIST"
+          ]
+        },
+        {
+          "module_id": 50,
+          "privileges": [
+            "VIEW_CONTAINER_TYPES", "VIEW_CONTAINER_THRESHOLDS", "VIEW_CONTAINER_PRIORITY", "VIEW_CONTAINER_PLANNING"
+          ]
+        },
+        {
+          "module_id": 60,
+          "privileges": [
+            "VIEW_PORT_CUSTOMER_MASTER", "VIEW_POL_PORTS", "VIEW_POD_PORTS", "VIEW_CUSTOMERS",
+            "CREATE_PORT", "UPDATE_PORT", "CREATE_CUSTOMER", "UPDATE_CUSTOMER",
+            "EXPORT_CUSTOMERS", "EXPORT_POL_PORTS", "EXPORT_POD_PORTS"
+          ]
+        },
+        {
+          "module_id": 70,
+          "privileges": [
+            "VIEW_SHIPMENT_UPLOAD", "VIEW_SHIPMENT_HISTORY", "VIEW_UPLOADS_HISTORY", "VIEW_INPUT_FILE", "VIEW_OUTPUT_FILE",
+            "UPLOAD_SHIPMENT_FILE", "PROCESS_SHIPMENT", "EXPORT_SHIPMENT_DATA"
+          ]
+        },
+        {
+          "module_id": 80,
+          "privileges": [
+            "VIEW_ASSIGNMENT_RESULTS", "VIEW_VALIDATION_SUMMARY", "VIEW_TEST_VALIDATION",
+            "EXPORT_ASSIGNMENT_DATA", "EXPORT_VALIDATION_DATA", "RUN_TEST_VALIDATION"
+          ]
+        },
+        {
+          "module_id": 100,
+          "privileges": [
+            "VIEW_DASHBOARD", "VIEW_USER_DASHBOARD"
+          ]
+        }
+      ]
+    }
+  ]
+}

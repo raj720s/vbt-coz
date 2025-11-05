@@ -1,0 +1,211 @@
+{
+  "containerThresholds": [
+    {
+      "id": "1",
+      "containerType": "40HC",
+      "minCBM": 54.8,
+      "maxCBM": 62,
+      "pol": "Yantian",
+      "isDefault": false,
+      "isActive": true,
+      "description": "40HC threshold for Yantian port - optimized for high density cargo",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "containerType": "40HC",
+      "minCBM": 54,
+      "maxCBM": 60,
+      "pol": "Qingdao",
+      "isDefault": false,
+      "isActive": true,
+      "description": "40HC threshold for Qingdao port - standard configuration",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "3",
+      "containerType": "40HC",
+      "minCBM": 55,
+      "maxCBM": 65,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default 40HC threshold - applies to all POLs unless overridden",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "4",
+      "containerType": "40FT",
+      "minCBM": 44.8,
+      "maxCBM": 54.8,
+      "pol": "Yantian",
+      "isDefault": false,
+      "isActive": true,
+      "description": "40FT threshold for Yantian port - optimized for high density cargo",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "5",
+      "containerType": "40FT",
+      "minCBM": 43,
+      "maxCBM": 54,
+      "pol": "Qingdao",
+      "isDefault": false,
+      "isActive": true,
+      "description": "40FT threshold for Qingdao port - standard configuration",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "6",
+      "containerType": "40FT",
+      "minCBM": 45,
+      "maxCBM": 55,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default 40FT threshold - applies to all POLs unless overridden",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "7",
+      "containerType": "20FT",
+      "minCBM": 19.9,
+      "maxCBM": 23,
+      "pol": "Yantian",
+      "isDefault": false,
+      "isActive": true,
+      "description": "20FT threshold for Yantian port - optimized for high density cargo",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "8",
+      "containerType": "20FT",
+      "minCBM": 19.9,
+      "maxCBM": 23,
+      "pol": "Qingdao",
+      "isDefault": false,
+      "isActive": true,
+      "description": "20FT threshold for Qingdao port - standard configuration",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "9",
+      "containerType": "20FT",
+      "minCBM": 20,
+      "maxCBM": 25,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default 20FT threshold - applies to all POLs unless overridden",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "10",
+      "containerType": "LCL",
+      "minCBM": 0,
+      "maxCBM": 19.9,
+      "pol": "Yantian",
+      "isDefault": false,
+      "isActive": true,
+      "description": "LCL threshold for Yantian port - less than container load",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "11",
+      "containerType": "LCL",
+      "minCBM": 0,
+      "maxCBM": 19.9,
+      "pol": "Qingdao",
+      "isDefault": false,
+      "isActive": true,
+      "description": "LCL threshold for Qingdao port - less than container load",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "12",
+      "containerType": "LCL",
+      "minCBM": 0,
+      "maxCBM": 20,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default LCL threshold - applies to all POLs unless overridden",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "13",
+      "containerType": "40HC_GroupMix",
+      "minCBM": 50,
+      "maxCBM": 70,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default 40HC GroupMix threshold - mixed destination consolidation",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "14",
+      "containerType": "40FT_GroupMix",
+      "minCBM": 40,
+      "maxCBM": 60,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default 40FT GroupMix threshold - mixed destination consolidation",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "15",
+      "containerType": "20FT_GroupMix",
+      "minCBM": 18,
+      "maxCBM": 30,
+      "pol": "",
+      "isDefault": true,
+      "isActive": true,
+      "description": "Default 20FT GroupMix threshold - mixed destination consolidation",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "1754831938771",
+      "containerType": "40HC",
+      "minCBM": 65,
+      "maxCBM": 68,
+      "pol": "Shanghai",
+      "isDefault": false,
+      "isActive": true,
+      "description": "40HC threshold for Shanghai",
+      "createdAt": "2025-08-10T13:18:58.771Z",
+      "updatedAt": "2025-08-10T13:18:58.771Z"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2025-08-10T13:18:58.773Z",
+    "description": "Container thresholds configuration with POL-specific overrides and defaults",
+    "rules": {
+      "defaultBehavior": "When no POL-specific threshold exists, use default thresholds where pol is empty",
+      "polOverride": "POL-specific thresholds take precedence over defaults",
+      "validation": {
+        "minCBM": "Must be >= 0",
+        "maxCBM": "Must be > minCBM",
+        "uniqueness": "containerType + pol combination must be unique"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,824 @@
+{
+  "privileges": [
+    {
+      "id": 1,
+      "privilege_name": "CREATE_ROLE",
+      "privilege_desc": "New Role is created successfully!",
+      "module_id": 10,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 2,
+      "privilege_name": "VIEW_ROLE_LIST",
+      "privilege_desc": "Viewed all Roles!",
+      "module_id": 10,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 3,
+      "privilege_name": "VIEW_ROLE",
+      "privilege_desc": "Viewed a specific Role details!",
+      "module_id": 10,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 4,
+      "privilege_name": "UPDATE_ROLE",
+      "privilege_desc": "Role is updated!",
+      "module_id": 10,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 5,
+      "privilege_name": "DELETE_ROLE",
+      "privilege_desc": "Role is deleted!",
+      "module_id": 10,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 6,
+      "privilege_name": "VIEW_PRIVILEGE_LIST",
+      "privilege_desc": "Viewed all permission list!",
+      "module_id": 20,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 7,
+      "privilege_name": "CREATE_ROLE_PERMISSION",
+      "privilege_desc": "New permission is added successfully to a Role!",
+      "module_id": 30,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 8,
+      "privilege_name": "VIEW_ROLE_PERMISSION_LIST",
+      "privilege_desc": "Viewed all permissions list for a specific Role!",
+      "module_id": 30,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 9,
+      "privilege_name": "VIEW_USER_LIST",
+      "privilege_desc": "Viewed all users list!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 10,
+      "privilege_name": "CREATE_USER",
+      "privilege_desc": "Created a new user successfully!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 11,
+      "privilege_name": "VIEW_USER",
+      "privilege_desc": "Viewed user detail!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 12,
+      "privilege_name": "VIEW_USER_SHORT_INFO_LIST",
+      "privilege_desc": "Specific User short info viewed!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 13,
+      "privilege_name": "UPDATE_USER",
+      "privilege_desc": "User details updated successfully!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 14,
+      "privilege_name": "DELETE_USER",
+      "privilege_desc": "User details deleted successfully!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 15,
+      "privilege_name": "UPDATE_USER_PASSWORD",
+      "privilege_desc": "User password updated successfully!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 16,
+      "privilege_name": "UPDATE_USER_STATUS",
+      "privilege_desc": "User status updated successfully!",
+      "module_id": 40,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 17,
+      "privilege_name": "VIEW_CONTAINER_TYPES",
+      "privilege_desc": "View container types and configurations",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 18,
+      "privilege_name": "CREATE_CONTAINER_TYPE",
+      "privilege_desc": "Create new container type",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 19,
+      "privilege_name": "UPDATE_CONTAINER_TYPE",
+      "privilege_desc": "Update existing container type",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 20,
+      "privilege_name": "DELETE_CONTAINER_TYPE",
+      "privilege_desc": "Delete container type",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 21,
+      "privilege_name": "VIEW_CONTAINER_THRESHOLDS",
+      "privilege_desc": "View container thresholds",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 22,
+      "privilege_name": "CREATE_THRESHOLD",
+      "privilege_desc": "Create new threshold",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 23,
+      "privilege_name": "UPDATE_THRESHOLD",
+      "privilege_desc": "Update existing threshold",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 24,
+      "privilege_name": "DELETE_THRESHOLD",
+      "privilege_desc": "Delete threshold",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 25,
+      "privilege_name": "VIEW_CONTAINER_PRIORITY",
+      "privilege_desc": "View container priority settings",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 26,
+      "privilege_name": "CREATE_PRIORITY",
+      "privilege_desc": "Create new priority setting",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 27,
+      "privilege_name": "UPDATE_PRIORITY",
+      "privilege_desc": "Update existing priority setting",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 28,
+      "privilege_name": "DELETE_PRIORITY",
+      "privilege_desc": "Delete priority setting",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 29,
+      "privilege_name": "VIEW_CONTAINER_PLANNING",
+      "privilege_desc": "View container planning",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 30,
+      "privilege_name": "CREATE_PLAN",
+      "privilege_desc": "Create new container plan",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 31,
+      "privilege_name": "UPDATE_PLAN",
+      "privilege_desc": "Update existing container plan",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 32,
+      "privilege_name": "DELETE_PLAN",
+      "privilege_desc": "Delete container plan",
+      "module_id": 50,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 33,
+      "privilege_name": "VIEW_PORT_CUSTOMER_MASTER",
+      "privilege_desc": "View port customer master data",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 34,
+      "privilege_name": "VIEW_POL_PORTS",
+      "privilege_desc": "View POL (Port of Loading) ports",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 35,
+      "privilege_name": "VIEW_POD_PORTS",
+      "privilege_desc": "View POD (Port of Discharge) ports",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 36,
+      "privilege_name": "VIEW_CUSTOMERS",
+      "privilege_desc": "View customer information",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 37,
+      "privilege_name": "CREATE_PORT",
+      "privilege_desc": "Create new port",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 38,
+      "privilege_name": "UPDATE_PORT",
+      "privilege_desc": "Update existing port",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 39,
+      "privilege_name": "DELETE_PORT",
+      "privilege_desc": "Delete port",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 40,
+      "privilege_name": "CREATE_CUSTOMER",
+      "privilege_desc": "Create new customer",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 41,
+      "privilege_name": "UPDATE_CUSTOMER",
+      "privilege_desc": "Update existing customer",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 42,
+      "privilege_name": "DELETE_CUSTOMER",
+      "privilege_desc": "Delete customer",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 43,
+      "privilege_name": "EXPORT_CUSTOMERS",
+      "privilege_desc": "Export customer data",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 44,
+      "privilege_name": "EXPORT_POL_PORTS",
+      "privilege_desc": "Export POL ports data",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 45,
+      "privilege_name": "EXPORT_POD_PORTS",
+      "privilege_desc": "Export POD ports data",
+      "module_id": 60,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 46,
+      "privilege_name": "VIEW_SHIPMENT_UPLOAD",
+      "privilege_desc": "View shipment upload interface",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 47,
+      "privilege_name": "CREATE_SHIPMENT",
+      "privilege_desc": "Create new shipment",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 48,
+      "privilege_name": "UPDATE_SHIPMENT",
+      "privilege_desc": "Update existing shipment",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 49,
+      "privilege_name": "DELETE_SHIPMENT",
+      "privilege_desc": "Delete shipment",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 50,
+      "privilege_name": "VIEW_SHIPMENT_HISTORY",
+      "privilege_desc": "View shipment history",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 51,
+      "privilege_name": "VIEW_UPLOADS_HISTORY",
+      "privilege_desc": "View uploads history",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 52,
+      "privilege_name": "VIEW_INPUT_FILE",
+      "privilege_desc": "View input file",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 53,
+      "privilege_name": "VIEW_OUTPUT_FILE",
+      "privilege_desc": "View output file",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 54,
+      "privilege_name": "UPLOAD_SHIPMENT_FILE",
+      "privilege_desc": "Upload shipment file",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 55,
+      "privilege_name": "PROCESS_SHIPMENT",
+      "privilege_desc": "Process shipment data",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 56,
+      "privilege_name": "EXPORT_SHIPMENT_DATA",
+      "privilege_desc": "Export shipment data",
+      "module_id": 70,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 75,
+      "privilege_name": "VIEW_SHIPMENT_ORDERS",
+      "privilege_desc": "View shipment orders list",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 76,
+      "privilege_name": "CREATE_SHIPMENT_ORDER",
+      "privilege_desc": "Create new shipment order",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 77,
+      "privilege_name": "VIEW_SHIPMENT_ORDER",
+      "privilege_desc": "View shipment order details",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 78,
+      "privilege_name": "UPDATE_SHIPMENT_ORDER",
+      "privilege_desc": "Update existing shipment order",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 79,
+      "privilege_name": "DELETE_SHIPMENT_ORDER",
+      "privilege_desc": "Delete shipment order",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 80,
+      "privilege_name": "ASSIGN_CONTAINER",
+      "privilege_desc": "Assign container to shipment order",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 81,
+      "privilege_name": "UPDATE_SHIPMENT_STATUS",
+      "privilege_desc": "Update shipment order status",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 82,
+      "privilege_name": "EXPORT_SHIPMENT_ORDERS",
+      "privilege_desc": "Export shipment orders data",
+      "module_id": 75,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 57,
+      "privilege_name": "VIEW_ASSIGNMENT_RESULTS",
+      "privilege_desc": "View assignment results",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 58,
+      "privilege_name": "VIEW_VALIDATION_SUMMARY",
+      "privilege_desc": "View validation summary",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 59,
+      "privilege_name": "VIEW_REPOSITIONING_SUMMARY",
+      "privilege_desc": "View repositioning summary",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 60,
+      "privilege_name": "VIEW_TEST_VALIDATION",
+      "privilege_desc": "View test validation results",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 61,
+      "privilege_name": "EXPORT_ASSIGNMENT_DATA",
+      "privilege_desc": "Export assignment data",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 62,
+      "privilege_name": "EXPORT_VALIDATION_DATA",
+      "privilege_desc": "Export validation data",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 63,
+      "privilege_name": "EXPORT_REPOSITIONING_DATA",
+      "privilege_desc": "Export repositioning data",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 64,
+      "privilege_name": "RUN_TEST_VALIDATION",
+      "privilege_desc": "Run test validation",
+      "module_id": 80,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 65,
+      "privilege_name": "VIEW_SYSTEM_SETTINGS",
+      "privilege_desc": "View system settings",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 66,
+      "privilege_name": "UPDATE_SYSTEM_SETTINGS",
+      "privilege_desc": "Update system settings",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 67,
+      "privilege_name": "DELETE_SYSTEM_SETTINGS",
+      "privilege_desc": "Delete system settings",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 68,
+      "privilege_name": "VIEW_DATA_BACKUP",
+      "privilege_desc": "View data backup information",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 69,
+      "privilege_name": "CREATE_DATA_BACKUP",
+      "privilege_desc": "Create data backup",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 70,
+      "privilege_name": "RESTORE_DATA_BACKUP",
+      "privilege_desc": "Restore data from backup",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 71,
+      "privilege_name": "DELETE_DATA_BACKUP",
+      "privilege_desc": "Delete data backup",
+      "module_id": 90,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 72,
+      "privilege_name": "VIEW_DASHBOARD",
+      "privilege_desc": "View main dashboard",
+      "module_id": 100,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 73,
+      "privilege_name": "VIEW_USER_DASHBOARD",
+      "privilege_desc": "View user dashboard",
+      "module_id": 100,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    },
+    {
+      "id": 74,
+      "privilege_name": "VIEW_ADMIN_DASHBOARD",
+      "privilege_desc": "View admin dashboard",
+      "module_id": 100,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "system"
+    }
+  ]
+}
