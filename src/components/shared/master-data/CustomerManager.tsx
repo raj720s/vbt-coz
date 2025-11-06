@@ -193,13 +193,14 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           setTotalActive(response.total_is_active || 0);
           setTotalInactive(response.total_inactive || 0);
 
-          // Determine if this is the last row
-          const lastRow = response.count <= endRow ? response.count : undefined;
-
-          // Call success callback with data
+          // For server-side row model with pagination, we need to return the exact row count
+          // instead of determining lastRow
+          const rowsThisPage = response.results || [];
+          
+          // Call success callback with data and total row count
           params.success({
-            rowData: response.results || [],
-            rowCount: lastRow,
+            rowData: rowsThisPage,
+            rowCount: response.count || 0, // Total number of rows available on server
           });
 
         } catch (error: any) {
@@ -642,12 +643,17 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           
           // Server-side row model configuration
           rowModelType="serverSide"
-          cacheBlockSize={10} // Number of rows per request
+          
+          // Cache configuration
+          cacheBlockSize={10} // Must match paginationPageSize
+          maxBlocksInCache={10} // Keep multiple pages in cache
+          
+          // Pagination configuration
           pagination={true}
-          paginationPageSize={10}
+          paginationPageSize={10} // Must match cacheBlockSize
+          paginationPageSizeSelector={[10, 25, 50, 100]}
           paginationAutoPageSize={true}
           suppressPaginationPanel={false}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
           
           onGridReady={handleGridReady}
           domLayout="normal"

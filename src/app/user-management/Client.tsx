@@ -193,7 +193,7 @@ function AdminUserManagementClient() {
           const page = Math.floor(startRow / pageSize) + 1;
 
           // Build request parameters for your API
-          const requestParams = {
+          const requestParams: any = {
             page: page,
             page_size: pageSize,
             order_by: "created_on",
@@ -211,7 +211,7 @@ function AdminUserManagementClient() {
             const sortModel = params.request.sortModel[0];
             
             // Map frontend column names to backend field names
-            const columnMapping = {
+            const columnMapping: { [key: string]: string } = {
               'firstName': 'first_name',
               'lastName': 'last_name',
               'email': 'email',
@@ -260,13 +260,14 @@ function AdminUserManagementClient() {
           setTotalInactive(inactiveUsers);
           setTotalSuperusers(superusers);
 
-          // Determine if this is the last row
-          const lastRow = response.count <= endRow ? response.count : undefined;
-
-          // Call success callback with data
+          // For server-side row model with pagination, we need to return the exact row count
+          // instead of determining lastRow
+          const rowsThisPage = transformedUsers;
+          
+          // Call success callback with data and total row count
           params.success({
-            rowData: transformedUsers,
-            rowCount: lastRow,
+            rowData: rowsThisPage,
+            rowCount: response.count || 0, // Total number of rows available on server
           });
 
         } catch (error: any) {
@@ -565,12 +566,17 @@ function AdminUserManagementClient() {
           loading={loading}
           // Server-side row model configuration
           rowModelType="serverSide"
-          cacheBlockSize={10} // Number of rows per request
+          
+          // Cache configuration
+          cacheBlockSize={10} // Must match paginationPageSize
+          maxBlocksInCache={10} // Keep multiple pages in cache
+          
+          // Pagination configuration
           pagination={true}
-          paginationPageSize={10}
+          paginationPageSize={10} // Must match cacheBlockSize
+          paginationPageSizeSelector={[10, 25, 50, 100]}
           paginationAutoPageSize={true}
           suppressPaginationPanel={false}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
           
           onGridReady={handleGridReady}
           domLayout="normal"
