@@ -50,6 +50,8 @@ export interface SupplierListRequest {
 
 export interface SupplierListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   next?: string;
   previous?: string;
   results: Supplier[];

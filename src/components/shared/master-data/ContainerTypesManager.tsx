@@ -49,6 +49,8 @@ export const ContainerTypesManager: React.FC<ContainerTypesManagerProps> = ({ mo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const totalPages = Math.ceil(total / pageSize);
   
@@ -83,6 +85,8 @@ export const ContainerTypesManager: React.FC<ContainerTypesManagerProps> = ({ mo
       const response = await containerTypeService.getContainerTypes(filters);
       setContainerTypes(response.results || []);
       setTotal(response.count || 0);
+      setTotalActive(response.total_is_active || 0);
+      setTotalInactive(response.total_inactive || 0);
       setPageSize(filters.page_size);
     } catch (error: any) {
       console.error('Error loading container types:', error);
@@ -332,9 +336,9 @@ export const ContainerTypesManager: React.FC<ContainerTypesManagerProps> = ({ mo
 
   // Calculate stats
   const stats = {
-    total: containerTypes.length,
-    active: containerTypes.filter(ct => ct.status === true).length,
-    inactive: containerTypes.filter(ct => ct.status === false).length,
+    total: total,
+    active: totalActive,
+    inactive: totalInactive,
     highCapacity: containerTypes.filter(ct => ct.capacity && typeof ct.capacity === 'number' && ct.capacity > 50).length,
   };
 

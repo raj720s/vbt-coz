@@ -59,7 +59,7 @@ interface UserFormProps {
     firstName: string;
     lastName: string;
     email: string;
-    role: number | null; // Allow null for users without roles
+    role: number | null; // Changed from role_id to role to match form usage
     status: string;
     organisation_name?: string;
     company?: number;
@@ -93,7 +93,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         console.error('Error fetching roles:', error);
       } finally {
         setRolesLoading(false);
-      }
+    }
     };
     fetchRoles();
   }, []);
@@ -245,77 +245,19 @@ export const UserForm: React.FC<UserFormProps> = ({
         
         const userId = parseInt(initialData.id as any);
         
-        // Step 1: Update the user
+        // Update the user (company is included in the payload)
         const response = await userService.updateUser(userId, apiData);
         console.log("✅ User updated successfully:", response);
-        
-        // Step 2: Update user-company mapping (if company is selected)
-        if (formData.company) {
-          try {
-            console.log("🔗 Updating user-company mapping:", { userId, companyId: formData.company });
-            await userService.createUserCompanyMapping({
-              user: userId,
-              company: formData.company,
-              is_active: true,
-            });
-            console.log("✅ User-company mapping updated successfully");
-            toast.success("User and company mapping updated successfully");
-          } catch (companyMappingError) {
-            console.error("❌ User-company mapping update failed:", companyMappingError);
-            toast.error("User updated successfully, but company mapping update failed. Please update company mapping manually.");
-          }
-        } else {
-          toast.success("User updated successfully");
-        }
+        toast.success("User updated successfully");
         
       } else {
         // Handle user creation
         console.log("🆕 Creating new user...");
         
-        // Step 1: Create the user
+        // Create the user (company is included in the payload)
         const response = await userService.createUser(apiData);
         console.log("✅ User created successfully:", response);
-        
-        // Step 2: Extract user ID from response
-        try {
-          let userId: number;
-          
-          if ('id' in response && typeof response.id === 'number') {
-            userId = response.id;
-            console.log("📊 Extracted user ID from response.id:", userId);
-          } else if ('data' in response && response.data && typeof response.data === 'object' && response.data !== null && 'id' in response.data && typeof (response.data as any).id === 'number') {
-            userId = (response.data as any).id;
-            console.log("📊 Extracted user ID from response.data.id:", userId);
-          } else {
-            console.error("❌ Could not extract user ID from response:", response);
-            throw new Error("Could not extract user ID from response");
-          }
-          
-          console.log("✅ User created with ID:", userId);
-          
-          // Step 3: Create user-company mapping using PUT (if company is selected)
-          if (formData.company) {
-            try {
-              console.log("🔗 Creating user-company mapping with PUT:", { userId, companyId: formData.company });
-              await userService.createUserCompanyMappingPut({
-                user: userId,
-                company: formData.company,
-                is_active: true,
-              });
-              console.log("✅ User-company mapping created successfully");
-              toast.success("User created and assigned to company successfully");
-            } catch (companyMappingError) {
-              console.error("❌ User-company mapping failed:", companyMappingError);
-              toast.error("User created successfully, but company assignment failed. Please assign company manually.");
-            }
-          } else {
-            toast.success("User created successfully");
-          }
-          
-        } catch (error) {
-          console.error("❌ Error processing user creation:", error);
-          toast.error("User created successfully, but there was an error processing the response.");
-        }
+        toast.success("User created successfully");
       }
       
       // Call success callback to close modal and refresh data

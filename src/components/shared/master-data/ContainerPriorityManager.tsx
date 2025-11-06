@@ -87,6 +87,8 @@ function ContainerPriorityManager() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   const [containerTypes, setContainerTypes] = useState<any[]>([]);
@@ -297,6 +299,8 @@ function ContainerPriorityManager() {
       const response = await containerPriorityService.getContainerPriorities(filters);
       setContainerPriorities(response.results || []);
       setTotal(response.count || 0);
+      setTotalActive(response.total_is_active || 0);
+      setTotalInactive(response.total_inactive || 0);
       setTotalPages(Math.ceil((response.count || 0) / (filters.page_size || 10)));
     } catch (err: any) {
       console.error('Error loading container priorities:', err);
@@ -472,7 +476,9 @@ function ContainerPriorityManager() {
 
   // Calculate stats
   const stats = {
-    total: containerPriorities.length,
+    total: total,
+    active: totalActive,
+    inactive: totalInactive,
     highPriority: containerPriorities.filter(cp => cp.priority && cp.priority <= 3).length,
     mediumPriority: containerPriorities.filter(cp => cp.priority && cp.priority > 3 && cp.priority <= 6).length,
     lowPriority: containerPriorities.filter(cp => cp.priority && cp.priority > 6).length,

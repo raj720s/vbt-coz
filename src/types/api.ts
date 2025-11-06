@@ -17,6 +17,7 @@ export interface UpdateUserRequest {
   organisation_name: string;
   role_id: number;
   password?: string;
+  company?: number;
 }
 
 export interface UserResponse {
@@ -285,6 +286,8 @@ export interface POLListRequest {
 
 export interface POLListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: POLResponse[];
 }
 
@@ -353,6 +356,8 @@ export interface PODListRequest {
 
 export interface PODListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: PODResponse[];
 }
 
@@ -445,6 +450,8 @@ export interface CustomerListRequest {
 
 export interface CustomerListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: CustomerResponse[];
 }
 
@@ -502,6 +509,8 @@ export interface ContainerTypeListRequest {
 
 export interface ContainerTypeListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: ContainerTypeResponse[];
 }
 
@@ -555,6 +564,8 @@ export interface CarrierListRequest {
 
 export interface CarrierListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: CarrierResponse[];
 }
 
@@ -673,6 +684,8 @@ export interface ContainerPriorityListRequest {
 
 export interface ContainerPriorityListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: ContainerPriorityResponse[];
 }
 
@@ -730,5 +743,7 @@ export interface ContainerThresholdListRequest {
 
 export interface ContainerThresholdListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   results: ContainerThresholdResponse[];
 }

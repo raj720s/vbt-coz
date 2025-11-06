@@ -52,6 +52,8 @@ export const ContainerThresholdsManager: React.FC<ContainerThresholdsManagerProp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   
   // Additional data for form and table display
@@ -90,6 +92,8 @@ export const ContainerThresholdsManager: React.FC<ContainerThresholdsManagerProp
       const response = await containerThresholdService.getContainerThresholds(filters);
       setContainerThresholds(response.results || []);
       setTotal(response.count || 0);
+      setTotalActive(response.total_is_active || 0);
+      setTotalInactive(response.total_inactive || 0);
       setTotalPages(Math.ceil((response.count || 0) / filters.page_size));
     } catch (error: any) {
       console.error('Error loading container thresholds:', error);
@@ -442,9 +446,9 @@ export const ContainerThresholdsManager: React.FC<ContainerThresholdsManagerProp
 
   // Calculate stats
   const stats = {
-    total: containerThresholds.length,
-    active: containerThresholds.filter(ct => ct.status === true).length,
-    inactive: containerThresholds.filter(ct => ct.status === false).length,
+    total: total,
+    active: totalActive,
+    inactive: totalInactive,
     highCapacity: containerThresholds.filter(ct => ct.max_capacity && ct.max_capacity > 50).length,
   };
 

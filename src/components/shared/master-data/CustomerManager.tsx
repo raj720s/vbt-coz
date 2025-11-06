@@ -9,7 +9,7 @@ import { DeleteConfirmationModal } from "@/components/ui/modal/DeleteConfirmatio
 import toast from "react-hot-toast";
 
 import { customerService } from "@/services";
-import { CustomerResponse, CustomerListRequest } from "@/types/api";
+import { CustomerResponse, CustomerListRequest, UpdateCustomerRequest } from "@/types/api";
 import { withSimplifiedRBAC, SimplifiedRBACProps } from "@/components/auth/withSimplifiedRBAC";
 
 // AG Grid imports
@@ -136,6 +136,8 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
 
   // Auto-clear errors after 5 seconds
   useEffect(() => {
@@ -186,8 +188,10 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           // Call your API
           const response = await customerService.getCustomers(requestParams);
           
-          // Update total count for stats
+          // Update stats from response
           setTotal(response.count || 0);
+          setTotalActive(response.total_is_active || 0);
+          setTotalInactive(response.total_inactive || 0);
 
           // Determine if this is the last row
           const lastRow = response.count <= endRow ? response.count : undefined;
@@ -249,6 +253,8 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
 
   // Actions Cell Renderer
   const ActionsRenderer = useCallback((params: ICellRendererParams) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+    
     const handleEditClick = () => {
       router.push(`/port-customer-master/customers/edit?id=${params.data.id}`);
     };
@@ -257,6 +263,78 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       handleDeleteClick(params.data);
     };
 
+    const handleRestoreClick = async () => {
+      if (isUpdating) return;
+      
+      try {
+        setIsUpdating(true);
+        
+        // Call the updateCustomer API to set status to active
+        const updateData: UpdateCustomerRequest = {
+          is_active: true,
+          company: params.data.company?.id || params.data.company,
+          name: params.data.name,
+          customer_code: params.data.customer_code,
+          contact_person: params.data.contact_person,
+          email: params.data.email,
+          phone: params.data.phone,
+          address: params.data.address,
+          country: params.data.country,
+          tax_id: params.data.tax_id,
+        };
+        
+        await customerService.updateCustomer(params.data.id, updateData);
+        
+        toast.success(`Customer "${params.data.name}" has been activated successfully`);
+        
+        // Refresh the grid data
+        if (gridRef.current) {
+          const api = gridRef.current.api;
+          const datasource = getServerSideDatasource(globalFilter);
+          api.setGridOption('serverSideDatasource', datasource);
+        }
+        
+      } catch (error: any) {
+        console.error('Error activating customer:', error);
+        toast.error(error.message || 'Failed to activate customer');
+      } finally {
+        setIsUpdating(false);
+      }
+    };
+
+    // If the record is inactive, show only the restore switch button
+    if (!params.data.is_active) {
+      return (
+        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRestoreClick}
+            disabled={isUpdating}
+            className="px-3 py-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300 disabled:opacity-50"
+          >
+            {isUpdating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Activating...
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Restore
+              </>
+            )}
+          </Button>
+        </div>
+      );
+    }
+
+    // For active records, show the normal edit/delete buttons
     return (
       <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
         <Button
@@ -280,7 +358,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
         )}
       </div>
     );
-  }, [canDeleteCustomer, router]);
+  }, [canDeleteCustomer, router, globalFilter]);
 
 
   // Column Definitions
@@ -288,12 +366,14 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
     {
       field: "actions",
       headerName: "Action",
-      width: 120,
+      width: 150,
+      minWidth: 150,
       cellRenderer: ActionsRenderer,
       sortable: false,
       filter: false,
       suppressMovable: true,
       lockPosition: 'left',
+      checkboxSelection: false,
     },
     {
       field: "name",
@@ -466,9 +546,9 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
   }, []);
 
   return (
-    <div className="p-6">
+    <div className="p-0">
       {/* Header */}
-      <div className="mb-6">
+      <div className="py-2">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Customer Records
         </h1>
@@ -508,51 +588,23 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{total}</p>
-            </div>
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 dark:text-blue-400 text-sm font-bold">C</span>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 py-4">
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Total Customers</div>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{total}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">-</p>
-            </div>
-            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-              <span className="text-green-600 dark:text-green-400 text-sm font-bold">✓</span>
-            </div>
-          </div>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Active Customers</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totalActive}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</p>
-            </div>
-            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-              <span className="text-purple-600 dark:text-purple-400 text-sm font-bold">🌍</span>
-            </div>
-          </div>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Customers</div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">-</p>
-            </div>
-            <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
-              <span className="text-orange-600 dark:text-orange-400 text-sm font-bold">📄</span>
-            </div>
-          </div>
-        </div>
+        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
+        </div> */}
       </div>
 
       {/* Filters */}
@@ -593,7 +645,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           cacheBlockSize={10} // Number of rows per request
           pagination={true}
           paginationPageSize={10}
-          paginationAutoPageSize={false}
+          paginationAutoPageSize={true}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
           
@@ -602,17 +654,19 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           animateRows={true}
           className="ag-theme-alpine"
           
-          rowSelection={{ mode: "multiRow" }}
+          rowSelection={{ mode: "multiRow", groupSelects: "descendants" }}
           
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelected: true,
+            onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Customers",
             onlySelected: true,
+            onlySelectedAllPages: true,
           }}
         />
       </div>

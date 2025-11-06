@@ -8,14 +8,14 @@ export const theme = {
     50: '#f3e8ff',
     100: '#e9d5ff',
     200: '#ddd6fe',
-    300: '#c4b5fd',
+    300: '#CAB8CD', // Selected Main Menu Color
     400: '#a78bfa',
-    500: '#8b5cf6',
-    600: '#7c3aed',
-    700: '#6d28d9',
-    800: '#5b21b6',
-    900: '#4c1d95',
-    950: '#2e1065',
+    500: '#501358', // Main Theme Color - Headers, Buttons
+    600: '#501358', // Main Theme Color - Headers, Buttons
+    700: '#3d0f42', // Darker shade for hover
+    800: '#2B0231', // Selected Menu Item Color
+    900: '#1a011d',
+    950: '#0f000f',
   },
 
   // Secondary Colors
@@ -124,9 +124,9 @@ export const themeClasses = {
 
   // Button variants
   button: {
-    primary: 'bg-theme-purple-600 hover:bg-theme-purple-700 text-white',
-    secondary: 'bg-theme-purple-50 hover:bg-theme-purple-100 text-theme-purple-600 dark:bg-theme-purple-900/20 dark:hover:bg-theme-purple-900/30 dark:text-theme-purple-400',
-    outline: 'border-theme-purple-300 text-theme-purple-600 hover:bg-theme-purple-50 dark:border-theme-purple-600 dark:text-theme-purple-400 dark:hover:bg-theme-purple-900/10',
+    primary: 'bg-brand-500 hover:bg-brand-700 text-white',
+    secondary: 'bg-theme-purple-50 hover:bg-theme-purple-100 text-brand-500 dark:bg-theme-purple-900/20 dark:hover:bg-theme-purple-900/30 dark:text-theme-purple-400',
+    outline: 'border-theme-purple-300 text-brand-500 hover:bg-theme-purple-50 dark:border-brand-500 dark:text-brand-500 dark:hover:bg-theme-purple-900/10',
   },
 
   // Input variants
@@ -143,10 +143,10 @@ export const themeClasses = {
 
   // Navigation variants
   nav: {
-    active: 'bg-theme-purple-50 text-theme-purple-600 dark:bg-theme-purple-900/20 dark:text-theme-purple-400',
-    inactive: 'text-gray-700 hover:bg-theme-purple-50 dark:text-gray-300 dark:hover:bg-theme-purple-900/10',
+    active: 'bg-theme-purple-300 text-brand-800 dark:bg-brand-800 dark:text-white', // Selected Main Menu
+    inactive: 'text-gray-700 hover:bg-theme-purple-300 dark:text-gray-300 dark:hover:bg-brand-800',
     icon: {
-      active: 'text-theme-purple-600 dark:text-theme-purple-400',
+      active: 'text-brand-800 dark:text-white',
       inactive: 'text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300',
     },
   },

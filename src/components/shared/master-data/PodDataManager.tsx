@@ -8,7 +8,7 @@ import { PencilIcon, TrashBinIcon, PlusIcon } from "@/icons";
 import { DeleteConfirmationModal } from "@/components/ui/modal/DeleteConfirmationModal";
 import toast from "react-hot-toast";
 import { withSimplifiedRBAC, SimplifiedRBACProps } from "@/components/auth/withSimplifiedRBAC";
-import { PODResponse, PODListRequest } from "@/types/api";
+import { PODResponse, PODListRequest, UpdatePODRequest } from "@/types/api";
 import { podService } from "@/services";
 
 // AG Grid imports
@@ -103,6 +103,8 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
   const gridRef = useRef<AgGridReact<PODResponse>>(null);
   
   const [globalFilter, setGlobalFilter] = useState("");
@@ -167,8 +169,10 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
           // Call your API
           const response = await podService.getPODs(requestParams);
           
-          // Update total count for stats
+          // Update stats from response
           setTotal(response.count || 0);
+          setTotalActive(response.total_is_active || 0);
+          setTotalInactive(response.total_inactive || 0);
 
           // Determine if this is the last row
           const lastRow = response.count <= endRow ? response.count : undefined;
@@ -203,6 +207,8 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
 
   // Actions Cell Renderer
   const ActionsRenderer = useCallback((params: ICellRendererParams) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+    
     const handleEditClick = () => {
       router.push(`/port-customer-master/pod-ports/edit?id=${params.data.id}`);
     };
@@ -211,6 +217,78 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       handleDeleteClick(params.data);
     };
 
+    const handleRestoreClick = async () => {
+      if (isUpdating) return;
+      
+      try {
+        setIsUpdating(true);
+        
+        // Call the updatePOD API to set status to active
+        const updateData: UpdatePODRequest = {
+          is_active: true,
+          country: params.data.country,
+          unlocode: params.data.unlocode,
+          timezone: params.data.timezone,
+          latitude: params.data.latitude,
+          longitude: params.data.longitude,
+          name: params.data.name,
+          code: params.data.code,
+          address: params.data.address,
+          description: params.data.description,
+        };
+        
+        await podService.updatePOD(params.data.id, updateData);
+        
+        toast.success(`POD port "${params.data.name}" has been activated successfully`);
+        
+        // Refresh the grid data
+        if (gridRef.current) {
+          const api = gridRef.current.api;
+          const datasource = getServerSideDatasource(globalFilter);
+          api.setGridOption('serverSideDatasource', datasource);
+        }
+        
+      } catch (error: any) {
+        console.error('Error activating POD port:', error);
+        toast.error(error.message || 'Failed to activate POD port');
+      } finally {
+        setIsUpdating(false);
+      }
+    };
+
+    // If the record is inactive, show only the restore switch button
+    if (!params.data.is_active) {
+      return (
+        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRestoreClick}
+            disabled={isUpdating}
+            className="px-3 py-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300 disabled:opacity-50"
+          >
+            {isUpdating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Activating...
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Restore
+              </>
+            )}
+          </Button>
+        </div>
+      );
+    }
+
+    // For active records, show the normal edit/delete buttons
     return (
       <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
         <Button
@@ -234,14 +312,15 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
         )}
       </div>
     );
-  }, [canDeletePOD, router]);
+  }, [canDeletePOD, router, globalFilter]);
 
   // Column Definitions
   const columnDefs = useMemo<ColDef[]>(() => [
     {
       field: "actions",
       headerName: "Action",
-      width: 120,
+      width: 150,
+      minWidth: 150,
       cellRenderer: ActionsRenderer,
       sortable: false,
       filter: false,
@@ -362,12 +441,17 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
   const handleExport = async () => {
     try {
       setLoading(true);
-      const response = await podService.getPODs({ ...filters });
+      const response = await podService.getPODs({
+        page: 1,
+        page_size: 10000,
+        order_by: "created_on",
+        order_type: "desc"
+      });
       
       const headers = ['Code', 'Name', 'Country', 'UNLOCODE', 'Timezone', 'Latitude', 'Longitude', 'Address', 'Status'];
       const csvContent = [
         headers.join(','),
-        ...pods.map(pod => [
+        ...(response.results || []).map((pod: PODResponse) => [
           pod.code,
           pod.name,
           pod.country,
@@ -417,6 +501,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
     // Create and set the datasource
     const datasource = getServerSideDatasource(globalFilter);
     params.api!.setGridOption('serverSideDatasource', datasource);
+    // params.api!.setRowCount()
   }, [getServerSideDatasource, globalFilter]);
 
   // Calculate dynamic height based on number of rows
@@ -433,9 +518,9 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
   }, []);
 
   return (
-    <div>
+    <div className="p-0">
       {/* Header */}
-      <div className="mb-6">         
+      <div className="py-2">         
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           POD Master
         </h1>
@@ -474,23 +559,23 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 py-4">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-500 dark:text-gray-400">Total POD Ports</div>
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">-</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Active POD Ports</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totalActive}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Inactive POD Ports</div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
+        </div>
+        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
-        </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">-</div>
-        </div>
+        </div> */}
       </div>
 
       {/* Filters */}
@@ -528,7 +613,7 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
           cacheBlockSize={10} // Number of rows per request
           pagination={true}
           paginationPageSize={10}
-          paginationAutoPageSize={false}
+          paginationAutoPageSize={true}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
           
@@ -537,17 +622,19 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
           animateRows={true}
           className="ag-theme-alpine"
           
-          rowSelection={{ mode: "multiRow" }}
+          rowSelection={{ mode: "multiRow", groupSelects: "descendants" }}
           
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `pod_ports_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelected: true,
+            onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `pod_ports_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "POD Ports",
             onlySelected: true,
+            onlySelectedAllPages: true,
           }}
         />
       </div>

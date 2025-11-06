@@ -64,7 +64,21 @@ export const userService = {
 
   // Update user
   async updateUser(id: number, data: Partial<CreateUserRequest>): Promise<UserDetailResponse> {
-    const response = await superAxios.put(`${BASEURL}/user/v1/${id}`, {...data, role_id: data.role});
+    const updateData: any = {
+      ...data,
+      role_id: data.role, // role is already a number from the form transformation
+    };
+    // Remove role from updateData since we're using role_id
+    delete updateData.role;
+    
+    // Include company_id if company is provided (API expects company_id for PUT)
+    if (data.company !== undefined) {
+      updateData.company_id = data.company;
+    }
+    // Remove company from updateData since we're using company_id
+    delete updateData.company;
+    
+    const response = await superAxios.put(`${BASEURL}/user/v1/${id}`, updateData);
     return response.data;
   },
 
@@ -101,26 +115,6 @@ export const userService = {
   // Get user JSON info for mapping user IDs to names
   async getUserJsonInfo(): Promise<UserJsonInfoResponse> {
     const response = await superAxios.get(`${BASEURL}/user/v1/json-info`);
-    return response.data;
-  },
-
-    // Create user-company mapping (POST - used for update flow)
-  async createUserCompanyMapping(data: { user: number; company: number; is_active?: boolean }): Promise<any> {
-    const response = await superAxios.post(`${BASEURL}/master-data/v1/user/company`, {
-      user: data.user,
-      company: data.company,
-      is_active: data.is_active ?? true,
-    });
-    return response.data;
-  },
-
-  // Create user-company mapping (PUT - used for create flow)
-  async createUserCompanyMappingPut(data: { user: number; company: number; is_active?: boolean }): Promise<any> {
-    const response = await superAxios.put(`${BASEURL}/master-data/v1/user/company`, {
-      user: data.user,
-      company: data.company,
-      is_active: data.is_active ?? true,
-    });
     return response.data;
   }
 };

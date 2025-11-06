@@ -58,11 +58,11 @@ const AppHeader: React.FC = () => {
                   pathname.includes("/carrier-management") ||
                   pathname.includes("/supplier-management"),
         subItems: [
-          { name: "POL Master", path: "/port-customer-master/pol-ports", moduleId: 60 },
-          { name: "POD Master", path: "/port-customer-master/pod-ports", moduleId: 60 },
-          { name: "Customer Records", path: "/port-customer-master/customers", moduleId: 60 },
-          { name: "Company Management", path: "/company-management", moduleId: 65 },
-          { name: "Carrier Management", path: "/carrier-management", moduleId: 68 },
+          { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
+          { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
+          { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
+          { name: "Company", path: "/company-management", moduleId: 65 },
+          { name: "Carrier", path: "/carrier-management", moduleId: 68 },
           // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
           // { name: "Container Types", path: "/container-types", moduleId: 50 },
           // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
@@ -78,7 +78,8 @@ const AppHeader: React.FC = () => {
                   pathname.includes("/shipment-upload") ||
                   pathname.includes("/assignment-results"),
         subItems: [
-          { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
+          { name: "Shipment Orders", path: "/", moduleId: 75 },
+          // { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
           // { name: "Shipment Operations", path: "/shipment-operations", moduleId: 75 },
           // { name: "Upload Shipments", path: "/shipment-upload", moduleId: 75 },
           // { name: "Assignment Results", path: "/assignment-results", moduleId: 75 },
@@ -95,7 +96,7 @@ const AppHeader: React.FC = () => {
                   pathname.includes("/role-management"),
         subItems: [
           { name: "User Management", path: "/user-management", moduleId: 40 },
-          { name: "Role Management", path: "/role-management", moduleId: 10 },
+          // { name: "Role Management", path: "/role-management", moduleId: 10 },
         ],
       });
     }
@@ -127,12 +128,13 @@ const AppHeader: React.FC = () => {
   }
 
   return (
-    <header className="sticky top-0 flex w-full bg-gradient-to-r from-purple-800 to-purple-900 dark:from-purple-900 dark:to-purple-950 shadow-lg z-50">
+    <header className="sticky top-0 flex w-full bg-brand-500 dark:bg-brand-500 shadow-lg z-50">
       <div className="flex items-center justify-between w-full px-6 py-3">
         {/* Left side - Logo */}
         <div className="flex items-center">
-          <Link href="/" className="mr-8">
-            <h1 className="text-xl font-bold italic text-white">
+          <Link href="/" className="mr-8 inline-flex gap-2">
+            <Image src="/assets/logo.png" alt="Logo" width={27} height={24} />
+            <h1 className="text-xl font-bold  text-white -mb-1">
               Vendor Booking Tool
             </h1>
           </Link>
@@ -148,8 +150,8 @@ const AppHeader: React.FC = () => {
                   onClick={() => toggleDropdown(item.id)}
                   className={`flex items-center gap-3 px-5 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
                     item.isActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/90 hover:bg-white/10 hover:text-white'
+                      ? 'bg-theme-purple-300 text-brand-800 dark:bg-brand-800 dark:text-white'
+                      : 'text-white/90 hover:bg-theme-purple-300 hover:text-brand-800 dark:hover:bg-brand-800 dark:hover:text-white'
                   }`}
                 >
                   {item.icon}
@@ -171,8 +173,8 @@ const AppHeader: React.FC = () => {
                           href={subItem.path}
                           className={`block px-4 py-3 text-sm transition-colors ${
                             pathname === subItem.path
-                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 font-medium border-l-3 border-purple-600'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                              ? 'bg-brand-500 text-white dark:bg-brand-800 dark:text-white font-medium border-l-3 border-brand-500'
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-theme-purple-300 hover:text-brand-800 dark:hover:bg-brand-800 dark:hover:text-white'
                           }`}
                           onClick={() => setActiveDropdown(null)}
                         >
@@ -219,7 +221,7 @@ const AppHeader: React.FC = () => {
 
       {/* Mobile Navigation Menu */}
       {isApplicationMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-gradient-to-r from-purple-800 to-purple-900 border-t border-purple-700 shadow-lg">
+        <div className="lg:hidden absolute top-full left-0 w-full bg-brand-500 border-t border-brand-700 shadow-lg">
           <div className="px-4 py-4">
             <nav className="space-y-2">
               {navItems.map((item) => (
@@ -228,8 +230,8 @@ const AppHeader: React.FC = () => {
                     onClick={() => toggleDropdown(item.id)}
                     className={`w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                       item.isActive
-                        ? 'bg-white/20 text-white'
-                        : 'text-white/90 hover:bg-white/10'
+                        ? 'bg-theme-purple-300 text-brand-800 dark:bg-brand-800 dark:text-white'
+                        : 'text-white/90 hover:bg-theme-purple-300 hover:text-brand-800 dark:hover:bg-brand-800 dark:hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -252,8 +254,8 @@ const AppHeader: React.FC = () => {
                           href={subItem.path}
                           className={`block px-4 py-2 text-sm rounded-md transition-colors ${
                             pathname === subItem.path
-                              ? 'bg-white/20 text-white font-medium'
-                              : 'text-white/80 hover:bg-white/10 hover:text-white'
+                              ? 'bg-brand-800 text-white dark:bg-brand-800 dark:text-white font-medium'
+                              : 'text-white/80 hover:bg-brand-800 hover:text-white dark:hover:bg-brand-800 dark:hover:text-white'
                           }`}
                           onClick={() => {
                             setActiveDropdown(null);
@@ -270,7 +272,7 @@ const AppHeader: React.FC = () => {
             </nav>
 
             {/* Mobile Breadcrumb */}
-            <div className="mt-4 pt-4 border-t border-purple-700">
+            <div className="mt-4 pt-4 border-t border-brand-700">
               <Breadcrumb />
             </div>
           </div>

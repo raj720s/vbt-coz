@@ -201,32 +201,7 @@ export default function SignInForm() {
             </div>
           </div>
 
-          {/* Remember Me and Forgot Password */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-theme-purple-600 focus:ring-theme-purple-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
-              >
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <Link
-                href="/forgot-password"
-                className="font-medium text-theme-purple-600 hover:text-theme-purple-500 dark:text-theme-purple-400 dark:hover:text-theme-purple-300"
-              >
-                Forgot password?
-              </Link>
-            </div>
-          </div>
+        
 
           {/* Submit Button */}
           <div>
@@ -265,19 +240,6 @@ export default function SignInForm() {
             </Button>
           </div>
         </form>
-
-        {/* Sign up link */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <Link
-              href="/signup"
-              className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300"
-            >
-              Create one now
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );

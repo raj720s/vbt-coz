@@ -101,6 +101,8 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
   const gridRef = useRef<AgGridReact<POLResponse>>(null);
 
   // Global filter state for search functionality
@@ -166,8 +168,10 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
           // Call your API
           const response = await polService.getPOLs(requestParams);
           
-          // Update total count for stats
+          // Update stats from response
           setTotal(response.count || 0);
+          setTotalActive(response.total_is_active || 0);
+          setTotalInactive(response.total_inactive || 0);
 
           // Determine if this is the last row
           const lastRow = response.count <= endRow ? response.count : undefined;
@@ -194,52 +198,127 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       toast.error("You don't have permission to delete POL data");
       return;
     }
-
     setDeletingItem(pol);
     setDeleteModalOpen(true);
   };
 
-  // Actions Cell Renderer
-  const ActionsRenderer = useCallback((params: ICellRendererParams) => {
-    const handleEditClick = () => {
-      router.push(`/port-customer-master/pol-ports/edit?id=${params.data.id}`);
-    };
+ 
+const ActionsRenderer = useCallback((params: ICellRendererParams) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  const handleEditClick = () => {
+    router.push(`/port-customer-master/pol-ports/edit?id=${params.data.id}`);
+  };
 
-    const handleDeleteButtonClick = () => {
-      handleDeleteClick(params.data);
-    };
+  const handleDeleteButtonClick = () => {
+    handleDeleteClick(params.data);
+  };
 
+  const handleRestoreClick = async () => {
+    if (isUpdating) return;
+    
+    try {
+      setIsUpdating(true);
+      
+      // Call the updatePOL API to set status to active
+      const updateData: UpdatePOLRequest = {
+        is_active: true,
+        country: params.data.country,
+        unlocode: params.data.unlocode,
+        timezone: params.data.timezone,
+        latitude: params.data.latitude,
+        longitude: params.data.longitude,
+        name: params.data.name,
+        code: params.data.code,
+        address: params.data.address,
+        description: params.data.description,
+      };
+      
+      await polService.updatePOL(params.data.id, updateData);
+      
+      toast.success(`POL port "${params.data.name}" has been activated successfully`);
+      
+      // Refresh the grid data
+      if (gridRef.current) {
+        const api = gridRef.current.api;
+        const datasource = getServerSideDatasource(globalFilter);
+        api.setGridOption('serverSideDatasource', datasource);
+      }
+      
+    } catch (error: any) {
+      console.error('Error activating POL port:', error);
+      toast.error(error.message || 'Failed to activate POL port');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // If the record is inactive, show only the restore switch button
+  if (!params.data.is_active) {
     return (
-      <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
         <Button
           size="sm"
           variant="outline"
-          onClick={handleEditClick}
-          className="p-1"
+          onClick={handleRestoreClick}
+          disabled={isUpdating}
+          className="px-3 py-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300 disabled:opacity-50"
         >
-          <PencilIcon className="w-4 h-4" />
+          {isUpdating ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Activating...
+            </>
+          ) : (
+            <>
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Restore
+            </>
+          )}
         </Button>
-
-        {canDeletePOL && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleDeleteButtonClick}
-            className="p-1 text-red-600 hover:text-red-700"
-          >
-            <TrashBinIcon className="w-4 h-4" />
-          </Button>
-        )}
       </div>
     );
-  }, [canDeletePOL, router]);
+  }
+
+  // For active records, show the normal edit/delete buttons
+  return (
+    <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={handleEditClick}
+        className="p-1"
+      >
+        <PencilIcon className="w-4 h-4" />
+      </Button>
+
+      {canDeletePOL && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleDeleteButtonClick}
+          className="p-1 text-red-600 hover:text-red-700"
+        >
+          <TrashBinIcon className="w-4 h-4" />
+        </Button>
+      )}
+    </div>
+  );
+}, [canDeletePOL, router, globalFilter]);
+
 
   // Column Definitions
   const columnDefs = useMemo<ColDef[]>(() => [
     {
       field: "actions",
       headerName: "Action",
-      width: 120,
+      width: 150,
+      minWidth: 150,
       cellRenderer: ActionsRenderer,
       sortable: false,
       filter: false,
@@ -371,6 +450,7 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
   // Handle grid ready event
   const handleGridReady = useCallback((params: GridReadyEvent) => {
     console.log('Grid ready event received');
+    params.api!.setRowCount(20);
     
     // Create and set the datasource
     const datasource = getServerSideDatasource(globalFilter);
@@ -434,21 +514,21 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 py-4">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Total POL Ports</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Total</div>
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">-</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Active</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totalActive}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Inactive</div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
+        </div>
+        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
-        </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">-</div>
-        </div>
+        </div> */}
       </div>
 
       {/* Filters */}
@@ -480,13 +560,13 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           loading={loading}
-          
+          // rowData={polData}
           // Server-side row model configuration
           rowModelType="serverSide"
           cacheBlockSize={10} // Number of rows per request
           pagination={true}
           paginationPageSize={10}
-          paginationAutoPageSize={false}
+          paginationAutoPageSize={true}
           suppressPaginationPanel={false}
           paginationPageSizeSelector={[10, 25, 50, 100]}
           
@@ -495,17 +575,17 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
           animateRows={true}
           className="ag-theme-alpine"
           
-          rowSelection={{ mode: "multiRow" }}
+          rowSelection={{ mode: "multiRow" , groupSelects:"descendants" }}
           
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelected: true,
+            onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "POL Ports",
-            onlySelected: true,
+            onlySelectedAllPages: true,
           }}
         />
       </div>

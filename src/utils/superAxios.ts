@@ -5,30 +5,44 @@ import { globalErrorService } from '@/services/globalErrorService';
 import { getAccessToken, AUTH_STORAGE_KEYS } from '@/utils/authStateHelper';
 
 /**
+ * Helper function to check if error indicates token is invalid/expired
+ * This checks for both 401 status and token_not_valid error code
+ */
+const isTokenInvalidError = (error: any): boolean => {
+  // Check for 401 status
+  if (error.response?.status === 401) {
+    return true;
+  }
+  
+  // Check for token_not_valid error code in response
+  const errorData = error.response?.data;
+  if (errorData?.code === 'token_not_valid' || errorData?.message === 'Given token not valid for any token type') {
+    return true;
+  }
+  
+  // Check messages array for token validation errors
+  if (Array.isArray(errorData?.messages)) {
+    const hasTokenError = errorData.messages.some((msg: any) => 
+      msg.token_type === 'access' && 
+      (msg.message?.includes('invalid') || msg.message?.includes('expired'))
+    );
+    if (hasTokenError) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
+/**
  * Helper function to handle logout and redirect when authentication fails
- * This ensures we stop all retry mechanisms and properly clean up
+ * Uses the logout service which directly accesses Redux store
  */
 const handleLogoutAndRedirect = () => {
-  // Stop auto-refresh service to prevent infinite retries
-  if (typeof window !== 'undefined') {
-    // Import tokenAutoRefreshService dynamically
-    import('@/services/tokenAutoRefreshService').then(({ tokenAutoRefreshService }) => {
-      tokenAutoRefreshService.stopAutoRefresh();
-    });
-    
-    // Clear all auth-related storage
-    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-    localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(AUTH_STORAGE_KEYS.FALLBACK_USER);
-    localStorage.removeItem('auth_user_fallback');
-    localStorage.removeItem('persist:auth_user');
-    
-    // Clear session storage as well
-    sessionStorage.clear();
-    
-    // Redirect to login page
-    window.location.href = '/signin';
-  }
+  // Import logout service dynamically to avoid circular dependency
+  import('@/services/logoutService').then(({ logoutService }) => {
+    logoutService.logout(true); // true = redirect to signin
+  });
 };
 
 const getToken = () => {
@@ -83,11 +97,11 @@ superAxios.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Handle 401 Unauthorized errors
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle token invalid/expired errors (401 status or token_not_valid code)
+    if (isTokenInvalidError(error) && !originalRequest._retry) {
       // Don't retry if this is already a refresh token request - logout immediately
       if (originalRequest.url?.includes('/token/refresh/')) {
-        console.error('Refresh token endpoint returned 401, logging out');
+        console.error('❌ Refresh token endpoint returned token error, logging out');
         handleLogoutAndRedirect();
         return Promise.reject(error);
       }
@@ -99,36 +113,49 @@ superAxios.interceptors.response.use(
         
         if (!refreshToken) {
           // No refresh token available, logout immediately
-          console.error('No refresh token available, logging out');
+          console.error('❌ No refresh token available, logging out');
           handleLogoutAndRedirect();
           return Promise.reject(error);
         }
 
         // Import services dynamically to avoid circular dependency
-          const { authService } = await import('@/services/authService');
+        const { authService } = await import('@/services/authService');
         const { tokenAutoRefreshService } = await import('@/services/tokenAutoRefreshService');
         
         // Stop auto-refresh before attempting manual refresh to prevent conflicts
         tokenAutoRefreshService.stopAutoRefresh();
-          
-          // Attempt to refresh the token
-          const newTokens = await authService.refreshToken(refreshToken);
-          
-          // Update session storage with new access token
-          localStorage.setItem('auth_token', `Bearer ${newTokens.access}`);
-          
-          // Update the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${newTokens.access}`;
-          
-          // Retry the original request
-          return superAxios(originalRequest);
+        
+        console.log('🔄 Attempting to refresh access token...');
+        
+        // Attempt to refresh the token
+        const newTokens = await authService.refreshToken(refreshToken);
+        
+        if (!newTokens.access) {
+          throw new Error('No access token received from refresh');
+        }
+        
+        // Update localStorage with new access token (with Bearer prefix)
+        const newAccessToken = `Bearer ${newTokens.access}`;
+        localStorage.setItem('auth_token', newAccessToken);
+        
+        console.log('✅ Access token refreshed successfully');
+        
+        // Restart auto-refresh service with new token
+        tokenAutoRefreshService.startAutoRefresh();
+        
+        // Update the original request with new token
+        originalRequest.headers.Authorization = newAccessToken;
+        
+        // Retry the original request
+        return superAxios(originalRequest);
       } catch (refreshError: any) {
         // Refresh failed, logout and redirect to login
-        console.error('Token refresh failed:', refreshError);
+        console.error('❌ Token refresh failed:', refreshError);
         
-        // If refresh token endpoint itself returned 401, don't retry
-        if (refreshError.response?.status === 401) {
-          console.error('Refresh token is invalid, logging out immediately');
+        // Check if refresh error also indicates token is invalid
+        // This happens when refresh token itself is expired (after 30 mins)
+        if (isTokenInvalidError(refreshError)) {
+          console.error('❌ Refresh token is invalid or expired (session expired after 30 mins), logging out immediately');
         }
         
         handleLogoutAndRedirect();

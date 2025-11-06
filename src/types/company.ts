@@ -51,6 +51,8 @@ export interface CompanyListRequest {
 
 export interface CompanyListResponse {
   count: number;
+  total_is_active: number;
+  total_inactive: number;
   next?: string;
   previous?: string;
   results: Company[];

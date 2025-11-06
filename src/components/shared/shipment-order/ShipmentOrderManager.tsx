@@ -619,7 +619,7 @@ const ShipmentOrderManager: React.FC<ShipmentOrderManagerProps> = ({
       {
         field: "actions",
         headerName: "Action",
-        width: 120,
+        minWidth: 150,
         cellRenderer: ActionsRenderer,
         sortable: false,
         filter: false,

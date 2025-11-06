@@ -31,26 +31,38 @@ export default function UserEditClient() {
       setError(null);
       const apiData = await userService.getUser(Number(id));
       
-      // Fetch company details if company ID exists
+      // Get company from company_dict if available
       let companyData = null;
-      if ((apiData as any).company) {
-        try {
-          companyData = await companyService.getCompany((apiData as any).company);
-        } catch (companyErr) {
-          console.warn("Failed to load company details:", companyErr);
+      const companyId = (apiData as any).company_dict?.id || (apiData as any).company;
+      
+      if (companyId) {
+        // If company_dict is provided, use it directly
+        if ((apiData as any).company_dict) {
+          companyData = {
+            id: (apiData as any).company_dict.id,
+            name: (apiData as any).company_dict.name,
+          };
+        } else {
+          // Otherwise fetch company details
+          try {
+            companyData = await companyService.getCompany(companyId);
+          } catch (companyErr) {
+            console.warn("Failed to load company details:", companyErr);
+          }
         }
       }
       
       // Transform API response to match User type expected by UserForm
+      // Note: API returns 'role' property (not 'role_id') for GET /api/user/v1/{id}
       const transformedData = {
         id: apiData.id?.toString() || id?.toString() || "",
         firstName: apiData.first_name || "",
         lastName: apiData.last_name || "",
         email: apiData.email || "",
-        role: apiData.role_id || apiData.role_details?.id || null, // Handle null role_id
+        role: (apiData as any).role != null ? (apiData as any).role : null, // Use 'role' property from API response
         status: apiData.status ? "active" : "inactive",
         organisation_name: apiData.organisation_name || "",
-        company: (apiData as any).company || undefined,
+        company: companyId || undefined,
         company_data: companyData,
       };
       

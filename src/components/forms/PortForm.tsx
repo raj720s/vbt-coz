@@ -13,7 +13,7 @@ const portSchema = z.object({
   code: z.string().min(1, "Port code is required"),
   name: z.string().min(1, "Port name is required"),
   country: z.string().min(1, "Country is required"),
-  unlocode: z.string().optional(),
+  unlocode: z.string().min(1, "UNLOCODE is required"),
   timezone: z.string().min(1, "Timezone is required"),
   type: z.enum(["POL", "POD"], { required_error: "Port type is required" }),
   is_active: z.boolean(),

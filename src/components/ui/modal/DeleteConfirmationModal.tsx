@@ -33,21 +33,15 @@ export function DeleteConfirmationModal({
     switch (variant) {
       case "warning":
         return {
-          icon: "text-yellow-500",
-          button: "bg-yellow-600 hover:bg-yellow-700 border-yellow-600 hover:border-yellow-700",
-          accent: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+          button: "bg-yellow-600 hover:bg-yellow-700 border-yellow-600 hover:border-yellow-700"
         };
       case "info":
         return {
-          icon: "text-blue-500",
-          button: "bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700",
-          accent: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+          button: "bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700"
         };
       default: // danger
         return {
-          icon: "text-red-500",
-          button: "bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700",
-          accent: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+          button: "bg-purple-700 hover:bg-purple-800 border-purple-700 hover:border-purple-800"
         };
     }
   };
@@ -57,14 +51,14 @@ export function DeleteConfirmationModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
       
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+          {/* Header with Close Button */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {title}
             </h2>
             <button
@@ -79,27 +73,13 @@ export function DeleteConfirmationModal({
           </div>
 
           {/* Content */}
-          <div className="p-6">
-            <div className="text-center space-y-4">
-              {/* Icon */}
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                <AlertIcon className={`h-8 w-8 ${styles.icon}`} />
-              </div>
-              
+          <div className="px-6 pb-6">
+            <div className="space-y-4">
               {/* Message */}
-              <div>
-                <p className="text-base text-gray-700 dark:text-gray-300 mb-2">
-                  {message}
-                </p>
-                
-                {itemName && (
-                  <div className={`inline-block px-3 py-2 rounded-lg ${styles.accent}`}>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {itemName}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <p className="text-base text-gray-700 dark:text-gray-300 italic">
+                {message}
+                {itemName && ` This action cannot be undone.`}
+              </p>
 
               {/* Error Display */}
               {error && (
@@ -117,21 +97,16 @@ export function DeleteConfirmationModal({
                   </div>
                 </div>
               )}
-              
-              {/* Warning Text */}
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                This action cannot be undone.
-              </p>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between gap-3 px-6 pb-6">
             <Button
               variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="px-6 py-2.5"
+              className="px-8 py-3 text-base font-medium border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
             >
               Cancel
             </Button>
@@ -140,7 +115,7 @@ export function DeleteConfirmationModal({
               <Button
                 onClick={onConfirm}
                 disabled={isLoading}
-                className={`${styles.button} text-white px-6 py-2.5`}
+                className={`${styles.button} text-white px-8 py-3 text-base font-medium rounded-lg`}
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -158,7 +133,7 @@ export function DeleteConfirmationModal({
               <Button
                 onClick={onConfirm}
                 disabled={isLoading}
-                className={`${styles.button} text-white px-6 py-2.5`}
+                className={`${styles.button} text-white px-8 py-3 text-base font-medium rounded-lg`}
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -166,10 +141,7 @@ export function DeleteConfirmationModal({
                     Deleting...
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <TrashBinIcon className="w-4 h-4" />
-                    Delete
-                  </div>
+                  "Delete"
                 )}
               </Button>
             )}

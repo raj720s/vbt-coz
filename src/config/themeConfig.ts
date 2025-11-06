@@ -189,11 +189,11 @@ export const themeConfig = {
       error: 'border-red-300 dark:border-red-600 focus:ring-red-500 focus:border-red-500',
     },
     navigation: {
-      active: 'bg-theme-purple-50 text-theme-purple-600 dark:bg-theme-purple-900/20 dark:text-theme-purple-400',
-      inactive: 'text-gray-700 hover:bg-theme-purple-50 dark:text-gray-300 dark:hover:bg-theme-purple-900/10',
+      active: 'bg-theme-purple-300 text-brand-800 dark:bg-brand-800 dark:text-white',
+      inactive: 'text-gray-700 hover:bg-theme-purple-300 hover:text-brand-800 dark:text-gray-300 dark:hover:bg-brand-800 dark:hover:text-white',
       icon: {
-        active: 'text-theme-purple-600 dark:text-theme-purple-400',
-        inactive: 'text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300',
+        active: 'text-brand-800 dark:text-white',
+        inactive: 'text-gray-500 group-hover:text-brand-800 dark:text-gray-400 dark:group-hover:text-white',
       },
     },
   },

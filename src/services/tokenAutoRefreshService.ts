@@ -113,26 +113,9 @@ class TokenAutoRefreshService {
         position: 'top-center'
       });
       
-      // If refresh fails, clear tokens and redirect to login
-      authService.clearTokens();
-      // Clear user from all storage locations
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_user_fallback');
-        localStorage.removeItem('persist:auth_user');
-        sessionStorage.clear();
-      }
-      
-      // Dispatch a custom event to notify other parts of the app
-      window.dispatchEvent(new CustomEvent('tokenRefreshFailed', {
-        detail: { error: error.message }
-      }));
-      
-      // Redirect to login page (use setTimeout to ensure cleanup completes)
-      if (typeof window !== 'undefined') {
-        setTimeout(() => {
-        window.location.href = '/signin';
-        }, 100);
-      }
+      // Use logout service to properly clear Redux state and storage
+      const { logoutService } = await import('./logoutService');
+      logoutService.logout(true); // true = redirect to signin
     } finally {
       this.isRefreshing = false;
     }

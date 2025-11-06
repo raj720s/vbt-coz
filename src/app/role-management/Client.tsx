@@ -489,7 +489,7 @@ function AdminRoleManagementClient() {
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: 120,
+      minWidth: 150,
       sortable: false,
       filter: false,
       cellRenderer: ActionsRenderer,

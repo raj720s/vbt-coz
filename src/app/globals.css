@@ -45,12 +45,12 @@
   --color-brand-200: #ddd6fe;
   --color-brand-300: #c4b5fd;
   --color-brand-400: #a78bfa;
-  --color-brand-500: #58065b; /* Primary Purple/Magenta (Dark) */
-  --color-brand-600: #501358; /* Primary Purple/Magenta (Medium) */
-  --color-brand-700: #611364; /* Primary Purple/Magenta (Light) */
-  --color-brand-800: #691f6c; /* Primary Purple/Magenta (Lighter) */
-  --color-brand-900: #4c1d95;
-  --color-brand-950: #2e1065;
+  --color-brand-500: #501358; /* Main Theme Color - Headers, Buttons */
+  --color-brand-600: #501358; /* Main Theme Color - Headers, Buttons */
+  --color-brand-700: #3d0f42; /* Darker shade for hover */
+  --color-brand-800: #2B0231; /* Selected Menu Item Color */
+  --color-brand-900: #1a011d;
+  --color-brand-950: #0f000f;
 
   /* Secondary/Accent Colors - Blues */
   --color-blue-light-25: #f5fbff;
@@ -175,14 +175,14 @@
   --color-theme-purple-50: #f3e8ff;
   --color-theme-purple-100: #e9d5ff;
   --color-theme-purple-200: #ddd6fe;
-  --color-theme-purple-300: #c4b5fd;
+  --color-theme-purple-300: #CAB8CD; /* Selected Main Menu Color */
   --color-theme-purple-400: #a78bfa;
-  --color-theme-purple-500: #58065b; /* Primary Purple/Magenta (Dark) */
-  --color-theme-purple-600: #501358; /* Primary Purple/Magenta (Medium) */
-  --color-theme-purple-700: #611364; /* Primary Purple/Magenta (Light) */
-  --color-theme-purple-800: #691f6c; /* Primary Purple/Magenta (Lighter) */
-  --color-theme-purple-900: #4c1d95;
-  --color-theme-purple-950: #2e1065;
+  --color-theme-purple-500: #501358; /* Main Theme Color - Headers, Buttons */
+  --color-theme-purple-600: #501358; /* Main Theme Color - Headers, Buttons */
+  --color-theme-purple-700: #3d0f42; /* Darker shade for hover */
+  --color-theme-purple-800: #2B0231; /* Selected Menu Item Color */
+  --color-theme-purple-900: #1a011d;
+  --color-theme-purple-950: #0f000f;
 
   --shadow-theme-md:
     0px 4px 8px -2px rgba(16, 24, 40, 0.1),
@@ -247,23 +247,23 @@
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-theme-purple-300 text-brand-800 dark:bg-brand-800 dark:text-white;
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply text-gray-700 hover:bg-theme-purple-300 hover:text-brand-800 group-hover:text-brand-800 dark:text-gray-300 dark:hover:bg-brand-800 dark:hover:text-white;
 }
 
 @utility menu-item-icon {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+  @apply text-gray-500 group-hover:text-brand-800 dark:text-gray-400 dark:group-hover:text-white;
 }
 
 @utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
+  @apply text-brand-800 dark:text-white;
 }
 
 @utility menu-item-icon-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-brand-800 dark:text-gray-400 dark:group-hover:text-white;
 }
 
 @utility menu-item-arrow {
@@ -271,11 +271,11 @@
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
+  @apply rotate-180 text-brand-800 dark:text-white;
 }
 
 @utility menu-item-arrow-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-brand-800 dark:text-gray-400 dark:group-hover:text-white;
 }
 
 @utility menu-dropdown-item {
@@ -283,11 +283,11 @@
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-brand-800 text-white dark:bg-brand-800 dark:text-white;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  @apply text-gray-700 hover:bg-brand-800 hover:text-white dark:text-gray-300 dark:hover:bg-brand-800 dark:hover:text-white;
 }
 
 @utility menu-dropdown-badge {
