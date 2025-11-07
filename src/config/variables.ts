@@ -1,1 +1,1 @@
-export const BASEURL = process.env.BASEURL || process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.0.128:8003/api';
+export const BASEURL = process.env.BASEURL || process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.0.75:8003/api';
