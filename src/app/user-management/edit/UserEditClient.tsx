@@ -61,7 +61,7 @@ export default function UserEditClient() {
         email: apiData.email || "",
         role: (apiData as any).role != null ? (apiData as any).role : null, // Use 'role' property from API response
         status: apiData.status ? "active" : "inactive",
-        organisation_name: apiData.organisation_name || "",
+        // organisation_name: apiData.organisation_name || "",
         company: companyId || undefined,
         company_data: companyData,
       };

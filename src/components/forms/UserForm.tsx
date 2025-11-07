@@ -26,7 +26,7 @@ const createUserSchema = (isEditing: boolean) => z.object({
   email: z.string().email("Please enter a valid email address"),
   role: z.string().min(1, "Please select a role"),
   status: z.string(),
-  organisation_name: z.string().min(1, "Organisation name is required"),
+  // organisation_name: z.string().min(1, "Organisation name is required"),
   company: z.number().optional(),
   password: isEditing ? z.string().optional() : z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: isEditing ? z.string().optional() : z.string().min(6, "Confirm password must be at least 6 characters"),
@@ -61,7 +61,7 @@ interface UserFormProps {
     email: string;
     role: number | null; // Changed from role_id to role to match form usage
     status: string;
-    organisation_name?: string;
+    // organisation_name?: string;
     company?: number;
     company_data?: any;
   };
@@ -133,7 +133,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       email: "",
       role: "",
       status: "true",
-      organisation_name: "",
+      // organisation_name: "",
       company: undefined,
       password: "",
       confirmPassword: "",
@@ -172,7 +172,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         email: initialData.email,
         role: initialData.role != null ? initialData.role.toString() : "", // Handle null/undefined role
         status: initialData.status === "active" ? "true" : "false",
-        organisation_name: initialData.organisation_name || "",
+        // organisation_name: initialData.organisation_name || "",
         company: initialData.company || undefined,
         password: "",
         confirmPassword: "",
@@ -224,7 +224,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       email: formData.email,
       role: selectedRole.id, // Use the role ID directly
       status: formData.status === "true",
-      organisation_name: formData.organisation_name,
+      // organisation_name: formData.organisation_name,
       // Add password for new users
       ...(formData.password && { password: formData.password }),
       ...(formData.company ? { company: formData.company } : {}),
@@ -395,18 +395,19 @@ export const UserForm: React.FC<UserFormProps> = ({
             )}
           </div>
 
-          <div>
+          {/* <div>
             <Label htmlFor="organisation_name">Organisation Name</Label>
             <Input
               id="organisation_name"
               {...register("organisation_name")}
               placeholder="Enter organisation name"
               className="w-full"
+              
             />
             {errors.organisation_name && (
               <p className="mt-1 text-sm text-red-600">{errors.organisation_name.message}</p>
             )}
-          </div>
+          </div> */}
 
           {/* Company (Searchable) */}
           <div className="md:col-span-2">

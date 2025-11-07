@@ -4,7 +4,7 @@ export interface CreateUserRequest {
   first_name: string;
   last_name: string;
   email: string;
-  organisation_name: string;
+  // organisation_name: string;
   role: number;
   password?: string;
   company?: number;
@@ -14,7 +14,7 @@ export interface UpdateUserRequest {
   first_name: string;
   last_name: string;
   email: string;
-  organisation_name: string;
+  // organisation_name: string;
   role_id: number;
   password?: string;
   company?: number;
@@ -25,7 +25,7 @@ export interface UserResponse {
   first_name: string;
   last_name: string;
   email: string;
-  organisation_name: string;
+  // organisation_name: string;
   created_on: string;
   role_id: number;
   phone_number: string;

@@ -50,7 +50,7 @@ ModuleRegistry.registerModules([
   SetFilterModule,
   ContextMenuModule,
   ColumnMenuModule,
-  ServerSideRowModelModule, // Register server-side row model
+  ServerSideRowModelModule,
 ]);
 
 // Custom Cell Renderers
@@ -116,13 +116,13 @@ const RoleRenderer = (params: ICellRendererParams) => {
   );
 };
 
-const OrganizationRenderer = (params: ICellRendererParams) => {
-  return (
-    <span className="text-sm text-gray-600 dark:text-gray-400">
-      {params.value}
-    </span>
-  );
-};
+// const OrganizationRenderer = (params: ICellRendererParams) => {
+//   return (
+//     <span className="text-sm text-gray-600 dark:text-gray-400">
+//       {params.value}
+//     </span>
+//   );
+// };
 
 const DateRenderer = (params: ICellRendererParams) => {
   return (
@@ -217,7 +217,6 @@ function AdminUserManagementClient() {
               'email': 'email',
               'status': 'status',
               'createdAt': 'created_on',
-              'organisation_name': 'organisation_name'
             };
 
             const backendFieldName = columnMapping[sortModel.colId] || sortModel.colId;
@@ -239,7 +238,6 @@ function AdminUserManagementClient() {
             status: apiUser.status ? "active" : "inactive",
             lastLogin: apiUser.last_login || apiUser.created_on,
             createdAt: apiUser.created_on,
-            organisation_name: apiUser.organisation_name || "",
             permissions: apiUser.role_data?.map((role: any) => role.role_name) || [],
             accessControl: [],
             is_superuser: apiUser.is_superuser,
@@ -260,8 +258,7 @@ function AdminUserManagementClient() {
           setTotalInactive(inactiveUsers);
           setTotalSuperusers(superusers);
 
-          // For server-side row model with pagination, we need to return the exact row count
-          // instead of determining lastRow
+          // For server-side row model with pagination, return exact row count
           const rowsThisPage = transformedUsers;
           
           // Call success callback with data and total row count
@@ -401,7 +398,7 @@ function AdminUserManagementClient() {
       minWidth: 250,
       flex: 2,
       sortable: true,
-      filter: false, // Disable column-level filtering for server-side
+      filter: false,
       cellRenderer: UserInfoRenderer,
     },
     {
@@ -409,7 +406,7 @@ function AdminUserManagementClient() {
       headerName: "Role",
       minWidth: 200,
       flex: 1.5,
-      sortable: false, // Disable sorting for computed field
+      sortable: false,
       filter: false,
       cellRenderer: RoleRenderer,
     },
@@ -421,15 +418,6 @@ function AdminUserManagementClient() {
       sortable: true,
       filter: false,
       cellRenderer: StatusRenderer,
-    },
-    {
-      field: "organisation_name",
-      headerName: "Organization",
-      minWidth: 150,
-      flex: 1,
-      sortable: true,
-      filter: false,
-      cellRenderer: OrganizationRenderer,
     },
     {
       field: "createdAt",
@@ -446,7 +434,7 @@ function AdminUserManagementClient() {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: false, // Disable default filtering for server-side
+    filter: false,
     flex: 1,
     minWidth: 100,
   }), []);
@@ -465,7 +453,6 @@ function AdminUserManagementClient() {
   // Handle grid ready event
   const handleGridReady = useCallback((params: GridReadyEvent) => {
     console.log('Grid ready event received');
-    params.api!.setRowCount(20);
     
     // Create and set the datasource
     const datasource = getServerSideDatasource(globalFilter);
@@ -564,10 +551,14 @@ function AdminUserManagementClient() {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           loading={loading}
+          
           // Server-side row model configuration
           rowModelType="serverSide"
           
-          // Cache configuration
+          // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
+          serverSideStoreType="partial"
+          
+          // Cache configuration - MUST match pagination size
           cacheBlockSize={10} // Must match paginationPageSize
           maxBlocksInCache={10} // Keep multiple pages in cache
           
@@ -575,8 +566,15 @@ function AdminUserManagementClient() {
           pagination={true}
           paginationPageSize={10} // Must match cacheBlockSize
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          paginationAutoPageSize={true}
-          suppressPaginationPanel={false}
+          
+          // CRITICAL: REMOVED paginationAutoPageSize - conflicts with server-side pagination
+          
+          // CRITICAL: Enable server-side infinite scroll for proper pagination
+          serverSideInfiniteScroll={true}
+          
+          // Sorting and filtering on server
+          serverSideSortOnServer={true}
+          serverSideFilterOnServer={true}
           
           onGridReady={handleGridReady}
           domLayout="normal"
