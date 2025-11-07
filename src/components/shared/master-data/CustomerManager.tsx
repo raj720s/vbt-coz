@@ -78,8 +78,6 @@ const CodeRenderer = (params: ICellRendererParams) => {
   );
 };
 
-// CompanyRenderer will be defined inside the component to access getCompanyName
-
 const NameRenderer = (params: ICellRendererParams) => {
   return (
     <span className="font-medium">
@@ -193,8 +191,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           setTotalActive(response.total_is_active || 0);
           setTotalInactive(response.total_inactive || 0);
 
-          // For server-side row model with pagination, we need to return the exact row count
-          // instead of determining lastRow
+          // For server-side row model with pagination, return exact row count
           const rowsThisPage = response.results || [];
           
           // Call success callback with data and total row count
@@ -361,7 +358,6 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
     );
   }, [canDeleteCustomer, router, globalFilter]);
 
-
   // Column Definitions
   const columnDefs = useMemo<ColDef[]>(() => [
     {
@@ -382,7 +378,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       minWidth: 200,
       flex: 2,
       sortable: true,
-      filter: false, // Disable column-level filtering for server-side
+      filter: false,
       cellRenderer: NameRenderer,
     },
     {
@@ -475,7 +471,7 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: false, // Disable default filtering for server-side
+    filter: false,
     flex: 1,
     minWidth: 100,
   }), []);
@@ -511,7 +507,6 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
       setLoading(false);
     }
   };
-
 
   const handleSearch = (searchTerm: string) => {
     setGlobalFilter(searchTerm);
@@ -602,10 +597,6 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Customers</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
         </div>
-        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
-        </div> */}
       </div>
 
       {/* Filters */}
@@ -644,7 +635,11 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           // Server-side row model configuration
           rowModelType="serverSide"
           
-          // Cache configuration
+          // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
+          // @ts-ignore
+          serverSideStoreType="partial"
+          
+          // Cache configuration - MUST match pagination size
           cacheBlockSize={10} // Must match paginationPageSize
           maxBlocksInCache={10} // Keep multiple pages in cache
           
@@ -652,8 +647,16 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           pagination={true}
           paginationPageSize={10} // Must match cacheBlockSize
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          paginationAutoPageSize={true}
-          suppressPaginationPanel={false}
+          
+          // CRITICAL: Remove paginationAutoPageSize when using server-side
+          // paginationAutoPageSize conflicts with server-side pagination
+          
+          // CRITICAL: Enable server-side infinite scroll for proper pagination
+          serverSideInfiniteScroll={true}
+          
+          // Sorting and filtering on server
+          serverSideSortOnServer={true}
+          serverSideFilterOnServer={true}
           
           onGridReady={handleGridReady}
           domLayout="normal"
@@ -665,13 +668,11 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Customers",
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
         />

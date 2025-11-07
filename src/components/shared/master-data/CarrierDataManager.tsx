@@ -174,8 +174,7 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
           setTotalActive(response.total_is_active || 0);
           setTotalInactive(response.total_inactive || 0);
 
-          // For server-side row model with pagination, we need to return the exact row count
-          // instead of determining lastRow
+          // For server-side row model with pagination, return exact row count
           const rowsThisPage = response.results || [];
           
           // Call success callback with data and total row count
@@ -194,7 +193,6 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
       },
     };
   }, []);
-
 
   const handleDeleteClick = (carrier: CarrierResponse) => {
     if (!canDeleteCarrier) {
@@ -329,9 +327,8 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: false, // Disable column-level filtering for server-side
+      filter: false,
       cellRenderer: CodeRenderer,
-
     },
     {
       field: "name",
@@ -366,12 +363,10 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: false, // Disable default filtering for server-side
+    filter: false,
     flex: 1,
     minWidth: 100,
   }), []);
-
-  // Submit handled in edit client pages
 
   const handleDeleteConfirm = async () => {
     if (!deletingItem) return;
@@ -399,47 +394,6 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
     } catch (error: any) {
       console.error('Error deleting carrier:', error);
       toast.error(error.message || 'Failed to delete carrier');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      setLoading(true);
-      const exportData = await carrierService.exportCarriers({
-        name: globalFilter || undefined,
-        export: true,
-        page_size: 1000
-      });
-      
-      const headers = ['Carrier Code', 'Name', 'Transportation Mode', 'Status', 'Created On'];
-      const csvRows = [
-        headers.join(','),
-        ...exportData.map(carrier => [
-          carrier.carrier_code,
-          carrier.name,
-          carrier.transportation_mode,
-          carrier.is_active ? 'Active' : 'Inactive',
-          carrier.created_on ? new Date(carrier.created_on).toLocaleDateString() : 'N/A'
-        ].join(','))
-      ];
-      
-      const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `carriers_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success('Carriers exported successfully');
-    } catch (error: any) {
-      console.error('Error exporting carriers:', error);
-      toast.error('Failed to export carriers');
     } finally {
       setLoading(false);
     }
@@ -533,10 +487,6 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
           <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Carriers</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
         </div>
-        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
-        </div> */}
       </div>
 
       {/* Filters */}
@@ -553,7 +503,7 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
           <Button
             type="button"
             onClick={() => router.push('/carrier-management/add')}
-            className="flex items-center gap-2  text-white whitespace-nowrap"
+            className="flex items-center gap-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white whitespace-nowrap"
           >
             <PlusIcon className="w-4 h-4" />
             Add Carrier
@@ -572,7 +522,11 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
           // Server-side row model configuration
           rowModelType="serverSide"
           
-          // Cache configuration
+          // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
+          // @ts-ignore
+          serverSideStoreType="partial"
+          
+          // Cache configuration - MUST match pagination size
           cacheBlockSize={10} // Must match paginationPageSize
           maxBlocksInCache={10} // Keep multiple pages in cache
           
@@ -580,8 +534,15 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
           pagination={true}
           paginationPageSize={10} // Must match cacheBlockSize
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          paginationAutoPageSize={true}
-          suppressPaginationPanel={false}
+          
+          // CRITICAL: REMOVED paginationAutoPageSize - conflicts with server-side pagination
+          
+          // CRITICAL: Enable server-side infinite scroll for proper pagination
+          serverSideInfiniteScroll={true}
+          
+          // Sorting and filtering on server
+          serverSideSortOnServer={true}
+          serverSideFilterOnServer={true}
           
           onGridReady={handleGridReady}
           domLayout="normal"
@@ -593,19 +554,15 @@ function CarrierDataManager({ rbacContext }: CarrierDataManagerProps) {
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `carriers_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `carriers_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Carriers",
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
         />
       </div>
-
-      {/* Inline modal removed; using dedicated add/edit pages */}
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
@@ -634,4 +591,3 @@ export default withSimplifiedRBAC(CarrierDataManager, {
 
 // DEBUG: This component should have role config
 console.log('🔐 CarrierDataManager loaded with role config:', [68]);
-

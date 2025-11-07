@@ -50,7 +50,7 @@ const StatusRenderer = (params: ICellRendererParams) => {
   const isActive = params.value;
   return (
     <span
-      className={`inline-flex items-center  py-1 text-xs font-medium rounded-full ${
+      className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
         isActive
           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
@@ -196,8 +196,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           setTotalActive(response.total_is_active || 0);
           setTotalInactive(response.total_inactive || 0);
 
-          // For server-side row model with pagination, we need to return the exact row count
-          // instead of determining lastRow
+          // For server-side row model with pagination, return exact row count
           const rowsThisPage = response.results || [];
           
           // Call success callback with data and total row count
@@ -216,7 +215,6 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       },
     };
   }, []);
-
 
   const handleDeleteClick = (company: Company) => {
     if (!canDeleteCompany) {
@@ -338,7 +336,6 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
 
   // Column Definitions
   const columnDefs = useMemo<ColDef[]>(() => [
-   
     {
       field: "actions",
       headerName: "Action",
@@ -357,9 +354,8 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       minWidth: 200,
       flex: 2,
       sortable: true,
-      filter: false, // Disable column-level filtering for server-side
+      filter: false,
       cellRenderer: NameRenderer,
-
     },
     {
       field: "company_type",
@@ -367,7 +363,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: false, // Disable for server-side
+      filter: false,
       cellRenderer: CompanyTypeRenderer,
     },
     {
@@ -392,7 +388,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: false, // Disable for server-side
+      filter: false,
     },
     {
       field: "is_third_party",
@@ -400,7 +396,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       minWidth: 100,
       flex: 0.8,
       sortable: true,
-      filter: false, // Disable for server-side
+      filter: false,
       cellRenderer: ThirdPartyRenderer,
     },
     {
@@ -409,7 +405,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       minWidth: 120,
       flex: 0.8,
       sortable: true,
-      filter: false, // Disable for server-side
+      filter: false,
       cellRenderer: StatusRenderer,
     },
   ], [ActionsRenderer]);
@@ -418,7 +414,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: false, // Disable default filtering for server-side
+    filter: false,
     flex: 1,
     minWidth: 100,
   }), []);
@@ -542,10 +538,6 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Companies</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
         </div>
-        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
-        </div> */}
       </div>
 
       {/* Filters */}
@@ -581,7 +573,10 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           // Server-side row model configuration
           rowModelType="serverSide"
           
-          // Cache configuration
+          // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
+          serverSideStoreType="partial"
+          
+          // Cache configuration - MUST match pagination size
           cacheBlockSize={10} // Must match paginationPageSize
           maxBlocksInCache={10} // Keep multiple pages in cache
           
@@ -589,8 +584,15 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           pagination={true}
           paginationPageSize={10} // Must match cacheBlockSize
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          paginationAutoPageSize={true}
-          suppressPaginationPanel={false}
+          
+          // CRITICAL: REMOVED paginationAutoPageSize - conflicts with server-side pagination
+          
+          // CRITICAL: Enable server-side infinite scroll for proper pagination
+          serverSideInfiniteScroll={true}
+          
+          // Sorting and filtering on server
+          serverSideSortOnServer={true}
+          serverSideFilterOnServer={true}
           
           onGridReady={handleGridReady}
           domLayout="normal"
@@ -602,13 +604,11 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `companies_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `companies_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Companies",
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
         />
@@ -641,4 +641,3 @@ export default withSimplifiedRBAC(CompanyManager, {
 
 // DEBUG: This component should have role config
 console.log('🔐 CompanyManager loaded with role config:', [65]);
-

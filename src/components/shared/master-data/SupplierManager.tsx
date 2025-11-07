@@ -172,8 +172,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
           setTotalActive(response.total_is_active || 0);
           setTotalInactive(response.total_inactive || 0);
 
-          // For server-side row model with pagination, we need to return the exact row count
-          // instead of determining lastRow
+          // For server-side row model with pagination, return exact row count
           const rowsThisPage = response.results || [];
           
           // Call success callback with data and total row count
@@ -192,7 +191,6 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       },
     };
   }, []);
-
 
   const handleDeleteClick = (supplier: Supplier) => {
     if (!canDeleteSupplier) {
@@ -331,7 +329,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 150,
       flex: 1,
       sortable: true,
-      filter: false, // Disable column-level filtering for server-side
+      filter: false,
       cellRenderer: CodeRenderer,
     },
     {
@@ -365,7 +363,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 120,
       flex: 1,
       sortable: true,
-      filter: false, // Disable for server-side
+      filter: false,
     },
     {
       field: "is_active",
@@ -373,7 +371,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
       minWidth: 120,
       flex: 0.8,
       sortable: true,
-      filter: false, // Disable for server-side
+      filter: false,
       cellRenderer: StatusRenderer,
     },
   ], [ActionsRenderer]);
@@ -382,7 +380,7 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
   const defaultColDef = useMemo<ColDef>(() => ({
     resizable: true,
     sortable: true,
-    filter: false, // Disable default filtering for server-side
+    filter: false,
     flex: 1,
     minWidth: 100,
   }), []);
@@ -506,10 +504,6 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
           <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Suppliers</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
         </div>
-        {/* <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">-</div>
-        </div> */}
       </div>
 
       {/* Filters */}
@@ -545,7 +539,11 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
           // Server-side row model configuration
           rowModelType="serverSide"
           
-          // Cache configuration
+          // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
+          // @ts-ignore
+          serverSideStoreType="partial"
+          
+          // Cache configuration - MUST match pagination size
           cacheBlockSize={10} // Must match paginationPageSize
           maxBlocksInCache={10} // Keep multiple pages in cache
           
@@ -553,8 +551,15 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
           pagination={true}
           paginationPageSize={10} // Must match cacheBlockSize
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          paginationAutoPageSize={true}
-          suppressPaginationPanel={false}
+          
+          // CRITICAL: REMOVED paginationAutoPageSize - conflicts with server-side pagination
+          
+          // CRITICAL: Enable server-side infinite scroll for proper pagination
+          serverSideInfiniteScroll={true}
+          
+          // Sorting and filtering on server
+          serverSideSortOnServer={true}
+          serverSideFilterOnServer={true}
           
           onGridReady={handleGridReady}
           domLayout="normal"
@@ -566,13 +571,11 @@ function SupplierManager({ rbacContext }: SupplierManagerProps) {
           // Default export configurations
           defaultCsvExportParams={{
             fileName: `suppliers_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
           defaultExcelExportParams={{
             fileName: `suppliers_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Suppliers",
-            onlySelected: true,
             onlySelectedAllPages: true,
           }}
         />
@@ -605,4 +608,3 @@ export default withSimplifiedRBAC(SupplierManager, {
 
 // DEBUG: This component should have role config
 console.log('🔐 SupplierManager loaded with role config:', [69]);
-
