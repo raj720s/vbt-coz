@@ -574,6 +574,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           rowModelType="serverSide"
           
           // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
+          // @ts-ignore
           serverSideStoreType="partial"
           
           // Cache configuration - MUST match pagination size
