@@ -249,7 +249,7 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           is_active: true,
           name: params.data.name,
           short_name: params.data.short_name,
-          company_type: params.data.company_type,
+          company_type: COMPANY_TYPES.find(type => type.label === params.data.company_type)?.value || 0,
           country: params.data.country,
           email: params.data.email,
           phone: params.data.phone,

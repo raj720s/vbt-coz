@@ -16,7 +16,6 @@ const portSchema = z.object({
   unlocode: z.string().min(1, "UNLOCODE is required"),
   timezone: z.string().min(1, "Timezone is required"),
   type: z.enum(["POL", "POD"], { required_error: "Port type is required" }),
-  is_active: z.boolean(),
   latitude: z.string().min(1, "Latitude is required"),
   longitude: z.string().min(1, "Longitude is required"),
   address: z.string().optional(),
@@ -163,7 +162,6 @@ export const PortForm: React.FC<PortFormProps> = ({
       unlocode: "",
       timezone: "",
       type: portType ?? "POL",
-      is_active: true,
       latitude: "",
       longitude: "",
       address: "",
@@ -171,7 +169,6 @@ export const PortForm: React.FC<PortFormProps> = ({
     },
   });
 
-  const isActive = watch("is_active");
   const isEditing = !!initialData;
   const currentPortType = watch("type");
 
@@ -186,7 +183,6 @@ export const PortForm: React.FC<PortFormProps> = ({
         unlocode: "",
         timezone: "",
         type: portType || "POL",
-        is_active: true,
         latitude: "",
         longitude: "",
         address: "",
@@ -196,7 +192,12 @@ export const PortForm: React.FC<PortFormProps> = ({
   }, [initialData, reset, portType]);
 
   const handleFormSubmit = (data: PortFormData) => {
-    onSubmit(data);
+    // Always set is_active to true, status is managed via restore in data manager
+    const submitData = {
+      ...data,
+      is_active: true,
+    };
+    onSubmit(submitData);
   };
 
   return (
@@ -320,40 +321,11 @@ export const PortForm: React.FC<PortFormProps> = ({
         </div>
       </section>
 
-      {/* ---------- STATUS & NOTES ---------- */}
+      {/* ---------- NOTES ---------- */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Status & Notes
+          Notes
         </h2>
-
-        {/* Radio – Active / Inactive */}
-        <div className="flex items-center gap-6 mb-4">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              value="true"
-              checked={isActive === true}
-              onChange={() => setValue("is_active", true)}
-              className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-            />
-            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
-          </label>
-
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              value="false"
-              checked={isActive === false}
-              onChange={() => setValue("is_active", false)}
-              className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-            />
-            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Inactive</span>
-          </label>
-        </div>
-
-        {errors.is_active && (
-          <p className="text-xs text-red-500 mb-4">{errors.is_active.message}</p>
-        )}
 
         {/* Description */}
         <div>

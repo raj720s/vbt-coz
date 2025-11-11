@@ -10,6 +10,7 @@ import { MessageProvider } from '@/components/ui/MessageBox';
 import AuthWrapper from '@/components/auth/AuthWrapper';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import { GlobalErrorHandler } from '@/components/providers/GlobalErrorHandler';
+import { ToasterProvider } from '@/components/providers/ToasterProvider';
 
 export const metadata: Metadata = {
   title: 'Vendor Booking Tool',
@@ -39,6 +40,7 @@ export default function RootLayout({
                     {children}
                   </ConditionalLayout>
                 {/* </AuthWrapper> */}
+                <ToasterProvider />
               </MessageProvider>
             </ThemeProvider>
           </AuthProvider>

@@ -11,6 +11,7 @@ import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Select from "@/components/form/select/SelectField";
 import CheckboxField from "@/components/form/checkbox/CheckboxField";
+import SearchableSelect from "@/components/form/input/SearchableSelect";
 import { Company, CompanyFormData, COMPANY_TYPES, COUNTRIES } from "@/types/company";
 import { companyService } from "@/services/companyService";
 
@@ -18,16 +19,22 @@ import { companyService } from "@/services/companyService";
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required").max(255, "Company name must be less than 255 characters"),
   short_name: z.string().max(50, "Short name must be less than 50 characters").optional(),
-  company_type: z.union([z.literal(5), z.literal(10)]).refine(val => val === 5 || val === 10, {
-    message: "Company type must be either 2PL (5) or 3PL (10)"
-  }),
+  company_type: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25)]).refine(
+    val => [5, 10, 15, 20, 25].includes(val),
+    { message: "Invalid company type" }
+  ),
   country: z.string().max(100, "Country must be less than 100 characters").optional(),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
   phone: z.string().max(50, "Phone must be less than 50 characters").optional(),
-  parent_company: z.string().max(50, "Parent company must be less than 50 characters").optional(),
+  parent_company_id: z.number().nullable().optional(),
   is_third_party: z.boolean(),
-  is_active: z.boolean(),
-});
+}).refine(
+  (data) => {
+    // Validation will be done in the component to access initialData
+    return true;
+  },
+  { message: "Company cannot be its own parent" }
+);
 
 type CompanyFormSchema = z.infer<typeof companySchema>;
 
@@ -40,6 +47,7 @@ interface CompanyFormProps {
 
 export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = false }: CompanyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedParentCompany, setSelectedParentCompany] = useState<{ id: number; name: string } | null>(null);
 
   const {
     register,
@@ -57,37 +65,92 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
       country: "",
       email: "",
       phone: "",
-      parent_company: "",
+      parent_company_id: null,
       is_third_party: false,
-      is_active: true,
     },
   });
+
+  // Load parent company details
+  const loadParentCompany = async (id: number) => {
+    try {
+      const company = await companyService.getCompany(id);
+      setSelectedParentCompany({ id: company.id, name: company.name });
+    } catch (error) {
+      console.error("Failed to load parent company:", error);
+    }
+  };
+
+  // Search companies function for SearchableSelect
+  const searchCompanies = async (query: string) => {
+    try {
+      const response = await companyService.getCompanies({ 
+        page: 1, 
+        page_size: 10, 
+        name: query || undefined
+      });
+      // Filter out the current company if editing
+      const filteredResults = isEditing && initialData
+        ? response.results.filter(company => company.id !== initialData.id)
+        : response.results;
+      return filteredResults.map(company => ({
+        id: company.id,
+        name: company.name,
+      }));
+    } catch (e) {
+      return [];
+    }
+  };
 
   // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
+      // Parse parent_company if it's a string ID
+      const parentCompanyId = initialData.parent_company 
+        ? (typeof initialData.parent_company === 'string' && !isNaN(Number(initialData.parent_company)) 
+            ? Number(initialData.parent_company) 
+            : null)
+        : null;
+      
       reset({
         name: initialData.name,
         short_name: initialData.short_name || "",
-        company_type: (initialData.company_type === 5 || initialData.company_type === 10) ? initialData.company_type : 5,
+        company_type: ([5, 10, 15, 20, 25].includes(initialData.company_type) ? initialData.company_type : 5) as 5 | 10 | 15 | 20 | 25,
         country: initialData.country || "",
         email: initialData.email,
         phone: initialData.phone || "",
-        parent_company: initialData.parent_company || "",
+        parent_company_id: parentCompanyId,
         is_third_party: initialData.is_third_party,
-        is_active: initialData.is_active,
       });
+      
+      // Load parent company details if ID exists
+      if (parentCompanyId) {
+        loadParentCompany(parentCompanyId);
+      }
     }
   }, [initialData, reset]);
 
   const onSubmit = async (data: CompanyFormSchema) => {
+    // Validate that company is not its own parent
+    if (isEditing && initialData && data.parent_company_id === initialData.id) {
+      toast.error("A company cannot be its own parent");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // Convert parent_company_id to string for API and always set is_active to true
+      const submitData: any = {
+        ...data,
+        parent_company: data.parent_company_id ? data.parent_company_id.toString() : undefined,
+        is_active: true, // Always set to true, status is managed via restore in data manager
+      };
+      delete submitData.parent_company_id;
+
       if (isEditing && initialData) {
-        await companyService.updateCompany(initialData.id, data);
+        await companyService.updateCompany(initialData.id, submitData);
         toast.success("Company updated successfully");
       } else {
-        await companyService.createCompany(data);
+        await companyService.createCompany(submitData);
         toast.success("Company created successfully");
       }
       onSuccess();
@@ -120,16 +183,6 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
             />
           </div>
 
-          {/* Short Name */}
-          <div>
-            <Label>Short Name</Label>
-            <Input
-              placeholder="Enter short name"
-              {...register("short_name")}
-              error={errors.short_name?.message}
-            />
-          </div>
-
           {/* Company Type */}
           <div>
             <Label>
@@ -146,6 +199,16 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
                 </option>
               ))}
             </Select>
+          </div>
+
+          {/* Short Name */}
+          <div>
+            <Label>Short Name</Label>
+            <Input
+              placeholder="Enter short name"
+              {...register("short_name")}
+              error={errors.short_name?.message}
+            />
           </div>
 
           {/* Email */}
@@ -193,20 +256,50 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
 
           {/* Parent Company */}
           <div>
-            <Label>Parent Company</Label>
-            <Input
-              placeholder="Enter parent company"
-              {...register("parent_company")}
-              error={errors.parent_company?.message}
+            <SearchableSelect
+              id="parent_company"
+              label="Parent Company"
+              placeholder="Search and select parent company"
+              value={watch("parent_company_id") || null}
+              onChange={(value) => {
+                const companyId = value as number | null;
+                
+                // Validate that company is not its own parent
+                if (isEditing && initialData && companyId === initialData.id) {
+                  toast.error("A company cannot be its own parent");
+                  setValue("parent_company_id", null, { shouldValidate: true });
+                  setSelectedParentCompany(null);
+                  return;
+                }
+                
+                setValue("parent_company_id", companyId, { shouldValidate: true });
+                if (companyId && selectedParentCompany?.id !== companyId) {
+                  // Find the company in the options or load it
+                  loadParentCompany(companyId);
+                } else if (!companyId) {
+                  setSelectedParentCompany(null);
+                }
+              }}
+              onSearch={async (query: string) => {
+                const results = await searchCompanies(query);
+                // If we have a selected parent company and it's not in results, add it
+                if (selectedParentCompany && !query && !results.find((r: any) => r.id === selectedParentCompany.id)) {
+                  return [selectedParentCompany, ...results];
+                }
+                return results;
+              }}
+              error={errors.parent_company_id?.message}
+              displayFormat={(option: any) => option.name}
+              searchPlaceholder="Search companies..."
             />
           </div>
         </div>
       </section>
 
-      {/* ---------- STATUS & SETTINGS ---------- */}
+      {/* ---------- SETTINGS ---------- */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Status & Settings
+          Settings
         </h2>
 
         <div className="space-y-4">
@@ -216,35 +309,6 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
               {...register("is_third_party")}
               error={errors.is_third_party?.message}
             />
-          </div>
-          <div>
-            <Label>Status</Label>
-            <div className="flex items-center gap-6 mt-2">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  value="true"
-                  checked={watch("is_active") === true}
-                  onChange={() => setValue("is_active", true)}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
-              </label>
-
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  value="false"
-                  checked={watch("is_active") === false}
-                  onChange={() => setValue("is_active", false)}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Inactive</span>
-              </label>
-            </div>
-            {errors.is_active && (
-              <p className="mt-1 text-sm text-red-600">{errors.is_active?.message}</p>
-            )}
           </div>
         </div>
       </section>

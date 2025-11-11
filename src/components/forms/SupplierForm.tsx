@@ -25,7 +25,6 @@ const supplierSchema = z.object({
   email: z.string().email("Invalid email address").min(1, "Email is required"),
   phone: z.string().max(50, "Phone must be less than 50 characters").optional(),
   description: z.string().max(500, "Description must be less than 500 characters").optional(),
-  is_active: z.boolean(),
 });
 
 type SupplierFormSchema = z.infer<typeof supplierSchema>;
@@ -58,7 +57,6 @@ export function SupplierForm({ initialData, onSuccess, onCancel, isEditing = fal
       email: "",
       phone: "",
       description: "",
-      is_active: true,
     },
   });
 
@@ -85,7 +83,6 @@ export function SupplierForm({ initialData, onSuccess, onCancel, isEditing = fal
         email: initialData.email,
         phone: initialData.phone || "",
         description: initialData.description || "",
-        is_active: initialData.is_active,
       });
     } else {
       setSelectedCompany(null);
@@ -95,11 +92,17 @@ export function SupplierForm({ initialData, onSuccess, onCancel, isEditing = fal
   const onSubmit = async (data: SupplierFormSchema) => {
     setIsSubmitting(true);
     try {
+      // Always set is_active to true, status is managed via restore in data manager
+      const submitData = {
+        ...data,
+        is_active: true,
+      };
+      
       if (isEditing && initialData) {
-        await supplierService.updateSupplier(initialData.id, data);
+        await supplierService.updateSupplier(initialData.id, submitData);
         toast.success("Supplier updated successfully");
       } else {
-        await supplierService.createSupplier(data);
+        await supplierService.createSupplier(submitData);
         toast.success("Supplier created successfully");
       }
       onSuccess();
@@ -244,42 +247,6 @@ export function SupplierForm({ initialData, onSuccess, onCancel, isEditing = fal
         </div>
       </section>
 
-      {/* ---------- STATUS & SETTINGS ---------- */}
-      <section>
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Status & Settings
-        </h2>
-
-        <div>
-          <Label>Status</Label>
-          <div className="flex items-center gap-6 mt-2">
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="radio"
-                value="true"
-                checked={watch("is_active") === true}
-                onChange={() => setValue("is_active", true)}
-                className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-              />
-              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
-            </label>
-
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="radio"
-                value="false"
-                checked={watch("is_active") === false}
-                onChange={() => setValue("is_active", false)}
-                className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-              />
-              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Inactive</span>
-            </label>
-          </div>
-          {errors.is_active && (
-            <p className="mt-1 text-sm text-red-600">{errors.is_active?.message}</p>
-          )}
-        </div>
-      </section>
 
       {/* ---------- BUTTONS ---------- */}
       <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">

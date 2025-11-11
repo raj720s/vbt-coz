@@ -25,7 +25,6 @@ const createUserSchema = (isEditing: boolean) => z.object({
   last_name: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   role: z.string().min(1, "Please select a role"),
-  status: z.string(),
   // organisation_name: z.string().min(1, "Organisation name is required"),
   company: z.number().optional(),
   password: isEditing ? z.string().optional() : z.string().min(6, "Password must be at least 6 characters"),
@@ -60,7 +59,7 @@ interface UserFormProps {
     lastName: string;
     email: string;
     role: number | null; // Changed from role_id to role to match form usage
-    status: string;
+    status?: string; // Optional - no longer used in form, status managed via restore in user management
     // organisation_name?: string;
     company?: number;
     company_data?: any;
@@ -132,7 +131,6 @@ export const UserForm: React.FC<UserFormProps> = ({
       last_name: "",
       email: "",
       role: "",
-      status: "true",
       // organisation_name: "",
       company: undefined,
       password: "",
@@ -141,8 +139,6 @@ export const UserForm: React.FC<UserFormProps> = ({
   });
 
   const role = watch("role");
-  const status = watch("status");
-  const isActive = status === "true";
 
   // Load existing customer assignments when editing - commented out for next version
   // useEffect(() => {
@@ -171,7 +167,6 @@ export const UserForm: React.FC<UserFormProps> = ({
         last_name: initialData.lastName,
         email: initialData.email,
         role: initialData.role != null ? initialData.role.toString() : "", // Handle null/undefined role
-        status: initialData.status === "active" ? "true" : "false",
         // organisation_name: initialData.organisation_name || "",
         company: initialData.company || undefined,
         password: "",
@@ -223,7 +218,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       last_name: formData.last_name,
       email: formData.email,
       role: selectedRole.id, // Use the role ID directly
-      status: formData.status === "true",
+      status: true, // Always set to true, status is managed via restore in user management
       // organisation_name: formData.organisation_name,
       // Add password for new users
       ...(formData.password && { password: formData.password }),
@@ -365,35 +360,6 @@ export const UserForm: React.FC<UserFormProps> = ({
         <section>
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Organization</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <div className="flex items-center gap-6 mt-2">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  value="true"
-                  checked={isActive === true}
-                  onChange={() => setValue("status", "true")}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
-              </label>
-
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  value="false"
-                  checked={isActive === false}
-                  onChange={() => setValue("status", "false")}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Inactive</span>
-              </label>
-            </div>
-            {errors.status && (
-              <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
-            )}
-          </div>
 
           {/* <div>
             <Label htmlFor="organisation_name">Organisation Name</Label>

@@ -86,10 +86,9 @@ export interface CompanyUpdateRequest {
 export const COMPANY_TYPES = [
   { value: 5, label: 'Vendor' },
   { value: 10, label: 'Origin_agent' },
-  { value: 10, label: 'destination_agent' },
-  // { value: 3, label: 'Partner' },
-  // { value: 4, label: 'Supplier' },
-  // { value: 5, label: 'Subsidiary' },
+  { value: 15, label: 'Destination_agent' },
+  { value: 20, label: 'Customer' },
+  { value: 25, label: 'Supplier' },
 ];
 
 // Country options (common countries)

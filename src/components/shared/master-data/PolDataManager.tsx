@@ -53,7 +53,8 @@ const StatusRenderer = (params: ICellRendererParams) => {
   const isActive = params.value;
   return (
     <span
-      className={`px-2 py-1 text-xs font-medium rounded-full ${isActive
+      className={`px-2 py-1 text-xs font-medium rounded-full ${
+        isActive
           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
         }`}
@@ -325,6 +326,8 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       suppressMovable: true,
       lockPosition: 'left',
       checkboxSelection: false,
+      // Exclude from export
+      suppressColumnsToolPanel: true,
     },
     {
       field: "code",
@@ -393,6 +396,30 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
       sortable: true,
       filter: false,
       cellRenderer: StatusRenderer,
+    },
+    // Add created_by column
+    {
+      field: "created_by",
+      headerName: "Created By",
+      minWidth: 150,
+      flex: 1,
+      sortable: true,
+      filter: false,
+      hide: true, // Hidden in grid but will be exported
+    },
+    // Add created_on column
+    {
+      field: "created_on",
+      headerName: "Created On",
+      minWidth: 180,
+      flex: 1,
+      sortable: true,
+      filter: false,
+      hide: true, // Hidden in grid but will be exported
+      valueFormatter: (params: ValueFormatterParams) => {
+        if (!params.value) return '';
+        return new Date(params.value).toLocaleString();
+      },
     },
   ], [ActionsRenderer]);
 
@@ -577,15 +604,20 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
           
           rowSelection={{ mode: "multiRow", groupSelects: "descendants" }}
           
-          // Default export configurations
+          // Updated export configurations
           defaultCsvExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelectedAllPages: true,
+            // Exclude the "actions" column and include hidden audit columns
+            columnKeys: ['code', 'name', 'country', 'unlocode', 'timezone', 'latitude', 'longitude', 'is_active', 'created_by', 'created_on'],
           }}
           defaultExcelExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "POL Ports",
             onlySelectedAllPages: true,
+            // Exclude the "actions" column and include hidden audit columns
+            columnKeys: ['code', 'name', 'country', 'unlocode', 'timezone', 'latitude', 'longitude', 'is_active', 'created_by', 'created_on'],
+            author: "POL Management System",
           }}
         />
       </div>

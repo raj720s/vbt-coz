@@ -27,7 +27,6 @@ const customerSchema = z.object({
   address: z.string().min(1, "Address is required"),
   country: z.string().min(1, "Country is required"),
   tax_id: z.string().min(1, "Tax ID is required"),
-  is_active: z.boolean(),
   custom_fields: z.array(customFieldSchema).max(5).optional(),
 });
 
@@ -129,12 +128,10 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       address: "",
       country: "",
       tax_id: "",
-      is_active: true,
       custom_fields: [],
     },
   });
 
-  const isActive = watch("is_active");
   const isEditing = !!initialData;
 
   useEffect(() => {
@@ -166,7 +163,6 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         address: "",
         country: "",
         tax_id: "",
-        is_active: true,
         custom_fields: [],
       });
       setCustomFields([]);
@@ -202,6 +198,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     const formData = {
       ...data,
       custom_fields: customFields.filter((field) => field.name.trim() !== ""),
+      is_active: true, // Always set to true, status is managed via restore in data manager
     };
     onSubmit(formData);
   };
@@ -471,47 +468,6 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         </div>
       </section>
 
-      {/* ---------- STATUS ---------- */}
-      <section>
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Status
-        </h2>
-
-        {/* Radio – Active / Inactive */}
-        <div className="flex items-center gap-6">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              value="true"
-              checked={isActive === true}
-              onChange={() => setValue("is_active", true)}
-              className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-            />
-            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Active
-            </span>
-          </label>
-
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              value="false"
-              checked={isActive === false}
-              onChange={() => setValue("is_active", false)}
-              className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-            />
-            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Inactive
-            </span>
-          </label>
-        </div>
-
-        {errors.is_active && (
-          <p className="text-xs text-red-500 mt-2">
-            {errors.is_active.message}
-          </p>
-        )}
-      </section>
 
       {/* ---------- BUTTONS ---------- */}
       <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
