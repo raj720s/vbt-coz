@@ -26,7 +26,7 @@ const customerSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
   address: z.string().min(1, "Address is required"),
   country: z.string().min(1, "Country is required"),
-  tax_id: z.string().min(1, "Tax ID is required"),
+  tax_id: z.string().optional(),
   custom_fields: z.array(customFieldSchema).max(5).optional(),
 });
 
@@ -203,14 +203,30 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     onSubmit(formData);
   };
 
-  const searchCompanies = async (query: string) => {
+  // const searchCompanies = async (query: string) => {
+  //   try {
+  //     const response = await companyService.getCompanies({ page: 1, page_size: 10, search: query });
+  //     return response.results || [];
+  //   } catch (e) {
+  //     return [];
+  //   }
+  // };
+
+  const searchCompanies = async (query: Object) => {
     try {
-      const response = await companyService.getCompanies({ page: 1, page_size: 10, search: query });
+      const response = await companyService.getCompanies({
+        // page: 1,
+        // page_size: 10,
+        ...(query),
+        is_active: true,       
+      });
       return response.results || [];
     } catch (e) {
+      console.error("Failed to fetch companies:", e);
       return [];
     }
   };
+  
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-8">
@@ -244,9 +260,9 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                   setValue("company", companyId, { shouldValidate: true, shouldDirty: true });
                   setSelectedCompany(companyObj);
                   // Auto-populate name from selected company if name field is empty
-                  if (companyObj?.name && !watch("name")) {
-                    setValue("name", companyObj.name, { shouldValidate: true });
-                  }
+                  // if (companyObj?.name && !watch("name")) {
+                  //   setValue("name", companyObj.name, { shouldValidate: true });
+                  // }
                 } catch (err) {
                   console.error("Failed to fetch company:", err);
                   // Still update the form value even if fetch fails
@@ -260,7 +276,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 }
               }}
               onSearch={async (query: string) => {
-                const results = await searchCompanies(query);
+                const results = await searchCompanies({company_type: 20});
                 // If we have a selected company and it's not in results, add it
                 if (selectedCompany && !query && !results.find((r: any) => r.id === selectedCompany.id)) {
                   return [selectedCompany, ...results];
@@ -303,7 +319,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
           {/* Tax ID */}
           <div>
             <Label>
-              Tax ID <span className="text-red-500">*</span>
+              Tax ID
             </Label>
             <Input
               placeholder="e.g., 12-3456789"

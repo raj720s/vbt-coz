@@ -19,10 +19,19 @@ import { companyService } from "@/services/companyService";
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required").max(255, "Company name must be less than 255 characters"),
   short_name: z.string().max(50, "Short name must be less than 50 characters").optional(),
-  company_type: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25)]).refine(
-    val => [5, 10, 15, 20, 25].includes(val),
-    { message: "Invalid company type" }
-  ),
+  company_type: z
+  .union([
+    z.literal(5),
+    z.literal(10),
+    z.literal(15),
+    z.literal(20),
+    z.literal(25),
+    z.null(),
+    z.undefined(),
+  ])
+  .refine((val) => val !== null && val !== undefined, {
+    message: "Company type is required",
+  }),
   country: z.string().max(100, "Country must be less than 100 characters").optional(),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
   phone: z.string().max(50, "Phone must be less than 50 characters").optional(),
@@ -61,7 +70,7 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
     defaultValues: {
       name: "",
       short_name: "",
-      company_type: 5,
+      company_type: undefined,
       country: "",
       email: "",
       phone: "",
@@ -189,7 +198,7 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
               Company Type <span className="text-red-500">*</span>
             </Label>
             <Select
-              placeholder="Select company type"
+              // placeholder="Select company type"
               {...register("company_type", { valueAsNumber: true })}
               error={errors.company_type?.message}
             >

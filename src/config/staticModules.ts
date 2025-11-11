@@ -112,6 +112,21 @@ export const staticModules: Record<number, StaticModule> = {
     group: "master-data"
   },
 
+  // Module 66: Company Customer Mappings
+  66: {
+    id: 66,
+    name: "Company Customer Mappings",
+    description: "Manage mappings between companies and customers",
+    routes: ["/company-customer-mappings"],
+    privileges: [
+      "VIEW_COMPANY_CUSTOMER_MAPPINGS", "CREATE_COMPANY_CUSTOMER_MAPPING", "VIEW_COMPANY_CUSTOMER_MAPPING",
+      "UPDATE_COMPANY_CUSTOMER_MAPPING", "DELETE_COMPANY_CUSTOMER_MAPPING", "EXPORT_COMPANY_CUSTOMER_MAPPINGS"
+    ],
+    icon: "link",
+    color: "violet",
+    group: "master-data"
+  },
+
   // Module 68: Carrier Management
   68: {
     id: 68,

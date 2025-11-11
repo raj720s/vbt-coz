@@ -84,6 +84,7 @@ export interface CompanyUpdateRequest {
 
 // Company type options
 export const COMPANY_TYPES = [
+  { value: 0, label: 'Select Company Type' },
   { value: 5, label: 'Vendor' },
   { value: 10, label: 'Origin_agent' },
   { value: 15, label: 'Destination_agent' },

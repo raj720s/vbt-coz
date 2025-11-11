@@ -55,6 +55,7 @@ const AppHeader: React.FC = () => {
                   pathname.includes("/container-priority") ||
                   pathname.includes("/container-thresholds") ||
                   pathname.includes("/company-management") ||
+                  pathname.includes("/company-customer-mappings") ||
                   pathname.includes("/carrier-management") ||
                   pathname.includes("/supplier-management"),
         subItems: [
@@ -62,6 +63,7 @@ const AppHeader: React.FC = () => {
           { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
           { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
           { name: "Company", path: "/company-management", moduleId: 65 },
+          { name: "Company Customer Mappings", path: "/company-customer-mappings", moduleId: 66 },
           { name: "Carrier", path: "/carrier-management", moduleId: 68 },
           // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
           // { name: "Container Types", path: "/container-types", moduleId: 50 },
