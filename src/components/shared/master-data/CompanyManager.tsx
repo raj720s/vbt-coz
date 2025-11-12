@@ -606,11 +606,17 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           defaultCsvExportParams={{
             fileName: `companies_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
           defaultExcelExportParams={{
             fileName: `companies_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Companies",
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
         />
       </div>

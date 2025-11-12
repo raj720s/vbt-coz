@@ -591,11 +591,17 @@ function PodDataManager({ rbacContext }: PodDataManagerProps) {
           defaultCsvExportParams={{
             fileName: `pod_ports_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
           defaultExcelExportParams={{
             fileName: `pod_ports_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "POD Ports",
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
         />
       </div>

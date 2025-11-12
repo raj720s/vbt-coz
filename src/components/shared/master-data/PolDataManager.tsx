@@ -608,15 +608,17 @@ function PolDataManager({ rbacContext }: PolDataManagerProps) {
           defaultCsvExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelectedAllPages: true,
-            // Exclude the "actions" column and include hidden audit columns
-            columnKeys: ['code', 'name', 'country', 'unlocode', 'timezone', 'latitude', 'longitude', 'is_active', 'created_by', 'created_on'],
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
           defaultExcelExportParams={{
             fileName: `pol_ports_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "POL Ports",
             onlySelectedAllPages: true,
-            // Exclude the "actions" column and include hidden audit columns
-            columnKeys: ['code', 'name', 'country', 'unlocode', 'timezone', 'latitude', 'longitude', 'is_active', 'created_by', 'created_on'],
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
             author: "POL Management System",
           }}
         />
