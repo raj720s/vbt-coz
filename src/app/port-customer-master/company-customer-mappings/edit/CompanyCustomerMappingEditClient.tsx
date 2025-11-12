@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CompanyCustomerMappingResponse } from "@/types/companyCustomerMapping";
 import { companyCustomerMappingService } from "@/services/companyCustomerMappingService";
 import { CompanyCustomerMappingForm } from "@/components/forms/CompanyCustomerMappingForm";
+import { customerService } from "@/services/customerService";
 import Button from "@/components/ui/button/Button";
 import { ArrowLeftIcon } from "@/icons";
 import toast from "react-hot-toast";
@@ -40,26 +41,43 @@ export default function CompanyCustomerMappingEditClient() {
     }
   };
 
+  // Helper function to convert customer IDs to customer names
+  const getCustomerNames = async (customerIds: number[]): Promise<string[]> => {
+    const customerNames: string[] = [];
+    for (const customerId of customerIds) {
+      try {
+        const customer = await customerService.getCustomer(customerId);
+        customerNames.push(customer.name);
+      } catch (error) {
+        console.warn(`Failed to fetch customer ${customerId}:`, error);
+      }
+    }
+    return customerNames;
+  };
+
   const handleSubmit = async (formData: { company_type: number; company_id: number; customer_ids: number[] }) => {
     try {
       setSaving(true);
       setError(null);
 
+      // Convert customer IDs to customer names for API
+      const customerNames = await getCustomerNames(formData.customer_ids);
+
       if (isEditMode && id) {
         await companyCustomerMappingService.updateMapping(Number(id), {
           company_id: formData.company_id,
-          customer_ids: formData.customer_ids,
+          customer_names: customerNames,
         });
         toast.success("Mapping updated successfully");
       } else {
         await companyCustomerMappingService.createMapping({
           company_id: formData.company_id,
-          customer_ids: formData.customer_ids,
+          customer_names: customerNames,
         });
         toast.success("Mapping created successfully");
       }
 
-      router.push("/company-customer-mappings");
+      router.push("/port-customer-master/company-customer-mappings");
     } catch (err: any) {
       console.error(err);
       setError(err.message ?? `Failed to ${isEditMode ? "update" : "create"} mapping`);
@@ -69,7 +87,7 @@ export default function CompanyCustomerMappingEditClient() {
     }
   };
 
-  const handleCancel = () => router.push("/company-customer-mappings");
+  const handleCancel = () => router.push("/port-customer-master/company-customer-mappings");
 
   if (loading) {
     return (

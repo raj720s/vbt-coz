@@ -69,9 +69,7 @@ const nextConfig = {
         fullySpecified: false,
       },
     });
-    
-
-    
+  
     return config;
   },
 };

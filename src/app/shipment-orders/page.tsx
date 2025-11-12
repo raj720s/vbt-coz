@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import ShipmentOrderManager from "@/components/shared/shipment-order/ShipmentOrderManager";
 
 export const metadata: Metadata = {
@@ -7,11 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ShipmentOrdersPage() {
-  return (
-    <div className="space-y-6">
-    
-      
-      <ShipmentOrderManager />
-    </div>
-  );
+  return <ShipmentOrderManager />;
 }
