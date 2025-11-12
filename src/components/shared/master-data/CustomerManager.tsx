@@ -669,11 +669,17 @@ function CustomerManager({ rbacContext }: CustomerManagerProps) {
           defaultCsvExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
           defaultExcelExportParams={{
             fileName: `customers_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Customers",
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[],
           }}
         />
       </div>

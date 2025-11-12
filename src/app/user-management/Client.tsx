@@ -664,11 +664,17 @@ function AdminUserManagementClient() {
           defaultCsvExportParams={{
             fileName: `users_${new Date().toISOString().split('T')[0]}.csv`,
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[], 
           }}
           defaultExcelExportParams={{
             fileName: `users_${new Date().toISOString().split('T')[0]}.xlsx`,
             sheetName: "Users",
             onlySelectedAllPages: true,
+            columnKeys: columnDefs
+                            .map(col => col.field)
+                            .filter(field => Boolean(field) && field !== 'actions') as string[], 
           }}
         />
       </div>
