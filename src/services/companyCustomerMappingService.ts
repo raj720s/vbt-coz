@@ -98,7 +98,7 @@ export class CompanyCustomerMappingService extends BaseService {
       company_type_label: COMPANY_TYPES.find(t => t.value === company.company_type)?.label || '',
       customer_ids: customerIds,
       customers: customers,
-      is_active: company.is_active,
+      is_active: apiResponse.is_active !== undefined ? apiResponse.is_active : company.is_active,
       created_on: undefined,
       modified_on: undefined,
       created_by: undefined,
@@ -126,29 +126,40 @@ export class CompanyCustomerMappingService extends BaseService {
   /**
    * Update mapping
    * @param companyId - Company ID (API uses company_id as identifier)
-   * @param data - Mapping update data (with customer_names)
+   * @param data - Mapping update data (with customer_names and optional is_active)
    * @returns Promise<CustomerMappingGetResponse> - Returns API response directly
    */
   async updateMapping(companyId: number, data: CompanyCustomerMappingUpdateRequest): Promise<CustomerMappingGetResponse> {
     // Prepare API request - matches exact API payload structure
-    // API expects: { company_id, customer_names }
+    // API expects: { company_id, customer_names, is_active }
     const apiRequest: CustomerMappingApiRequest = {
       company_id: data.company_id || companyId,
       customer_names: data.customer_names || [],
     };
 
-    // Call API - API returns { company_id, company_name, customer_names }
+    // Include is_active if provided
+    if (data.is_active !== undefined) {
+      apiRequest.is_active = data.is_active;
+    }
+
+    // Call API - API returns { company_id, company_name, customer_names, is_active }
     const response = await this.put<CustomerMappingGetResponse>(`${this.basePath}/${companyId}`, apiRequest);
     return response;
   }
 
   /**
-   * Delete mapping
+   * Delete mapping (soft delete by setting is_active to false)
    * @param companyId - Company ID (API uses company_id as identifier)
-   * @returns Promise<void>
+   * @param customerNames - Customer names to preserve in the mapping
+   * @returns Promise<CustomerMappingGetResponse>
    */
-  async deleteMapping(companyId: number): Promise<void> {
-    await this.delete<void>(`${this.basePath}/${companyId}`);
+  async deleteMapping(companyId: number, customerNames: string[]): Promise<CustomerMappingGetResponse> {
+    // Soft delete by setting is_active to false
+    return this.updateMapping(companyId, {
+      company_id: companyId,
+      customer_names: customerNames,
+      is_active: false,
+    });
   }
 
   /**

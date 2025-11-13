@@ -232,8 +232,10 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
     setDeleteModalOpen(true);
   };
 
-  // Actions Cell Renderer
-  const ActionsRenderer = useCallback((params: ICellRendererParams) => {
+  // Actions Cell Renderer Component
+  const ActionsRenderer = (params: ICellRendererParams) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+    
     const handleEditClick = () => {
       router.push(`/port-customer-master/company-customer-mappings/edit?id=${params.data.company_id}`);
     };
@@ -242,22 +244,113 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
       handleDeleteClick(params.data);
     };
 
+    const handleRestoreClick = async () => {
+      if (isUpdating) return;
+      
+      try {
+        setIsUpdating(true);
+        
+        // Get customer names from the mapping
+        const customerNames = params.data.customers?.map((customer: any) => customer.customer_name) || [];
+        
+        if (customerNames.length === 0) {
+          toast.error("No customers found in this mapping");
+          return;
+        }
+        
+        // Update mapping with is_active: true to restore it
+        await companyCustomerMappingService.updateMapping(params.data.company_id, {
+          company_id: params.data.company_id,
+          customer_names: customerNames,
+          is_active: true,
+        });
+        
+        toast.success(`Customer mapping for "${params.data.company_name}" has been restored successfully`);
+        
+        // Refresh the grid data
+        if (gridRef.current) {
+          const api = gridRef.current.api;
+          const datasource = getServerSideDatasource(globalFilter);
+          api.setGridOption('serverSideDatasource', datasource);
+        }
+        
+      } catch (error: any) {
+        console.error('Error restoring customer mapping:', error);
+        toast.error(error.message || 'Failed to restore customer mapping');
+      } finally {
+        setIsUpdating(false);
+      }
+    };
+
+    // Check if mapping is inactive
+    // Handle boolean false, string "false", 0, null, undefined
+    // Show restore button if is_active is falsy (but not if it's explicitly true)
+    const isActiveValue = params.data.is_active;
+    const isMappingInactive = isActiveValue === false || 
+                             isActiveValue === 0 || 
+                             isActiveValue === null || 
+                             (typeof isActiveValue === 'string' && isActiveValue.toLowerCase() === 'false');
+    
+    // Debug log to check the data structure (only for inactive or undefined)
+    if (!isActiveValue || isActiveValue === false) {
+      console.log('CompanyCustomerMapping ActionsRenderer:', {
+        company_id: params.data.company_id,
+        company_name: params.data.company_name,
+        is_active: params.data.is_active,
+        isActiveValue,
+        isMappingInactive,
+        type: typeof params.data.is_active,
+      });
+    }
+    
+    if (isMappingInactive) {
+      return (
+        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRestoreClick}
+            disabled={isUpdating}
+            className="px-3 py-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300 disabled:opacity-50"
+          >
+            {isUpdating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Activating...
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Restore
+              </>
+            )}
+          </Button>
+        </div>
+      );
+    }
+
+    // For active records, show the normal edit/delete buttons
     return (
       <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => handleEditClick()}
+          onClick={handleEditClick}
           className="p-1"
         >
           <PencilIcon className="w-4 h-4" />
         </Button>
-        
+
         {canDeleteMapping && (
           <Button
             size="sm"
             variant="outline"
-            onClick={() => handleDeleteButtonClick()}
+            onClick={handleDeleteButtonClick}
             className="p-1 text-red-600 hover:text-red-700"
           >
             <TrashBinIcon className="w-4 h-4" />
@@ -265,7 +358,7 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
         )}
       </div>
     );
-  }, [canDeleteMapping, router]);
+  };
 
   // Column Definitions
   const columnDefs = useMemo<ColDef[]>(() => [
@@ -281,14 +374,14 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
       lockPosition: 'left',
       checkboxSelection: false,
     },
-    {
-      field: "company_id",
-      headerName: "Company ID",
-      minWidth: 120,
-      flex: 0.8,
-      sortable: true,
-      filter: false,
-    },
+    // {
+    //   field: "company_id",
+    //   headerName: "Company ID",
+    //   minWidth: 120,
+    //   flex: 0.8,
+    //   sortable: true,
+    //   filter: false,
+    // },
     {
       field: "company_name",
       headerName: "Company Name",
@@ -297,6 +390,15 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
       sortable: true,
       filter: false,
       cellRenderer: NameRenderer,
+    },
+    {
+      field: "is_active",
+      headerName: "Status",
+      minWidth: 120,
+      flex: 1,
+      sortable: true,
+      filter: false,
+      cellRenderer: StatusRenderer,
     },
     {
       field: "customers",
@@ -330,7 +432,12 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
     
     try {
       setLoading(true);
-      await companyCustomerMappingService.deleteMapping(deletingItem.company_id);
+      
+      // Get customer names from the mapping
+      const customerNames = deletingItem.customers?.map((customer: any) => customer.customer_name) || [];
+      
+      // Soft delete by setting is_active to false
+      await companyCustomerMappingService.deleteMapping(deletingItem.company_id, customerNames);
       toast.success('Company customer mapping deleted successfully');
       setDeleteModalOpen(false);
       setDeletingItem(null);

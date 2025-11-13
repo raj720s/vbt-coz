@@ -11,6 +11,7 @@ export interface CompanyCustomerMapping {
   company_id: number;
   company_name: string;
   customers: MappingCustomer[];
+  is_active?: boolean;
 }
 
 export interface CompanyCustomerMappingListRequest {
@@ -27,6 +28,7 @@ export interface CompanyCustomerMappingListRequest {
 export interface CustomerMappingApiRequest {
   company_id: number;
   customer_names: string[];
+  is_active?: boolean;
 }
 
 export interface CustomerMappingApiResponse {
@@ -50,6 +52,7 @@ export interface CompanyCustomerMappingCreateRequest {
 export interface CompanyCustomerMappingUpdateRequest {
   company_id?: number;
   customer_names?: string[]; // API uses customer_names (strings)
+  is_active?: boolean;
 }
 
 // API Response for GET/PUT - matches exactly what the API returns
@@ -57,6 +60,7 @@ export interface CustomerMappingGetResponse {
   company_id: number;
   company_name: string;
   customer_names: string[];
+  is_active?: boolean;
 }
 
 // Internal response type for form usage (converted from API response)
