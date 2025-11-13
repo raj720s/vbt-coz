@@ -59,35 +59,37 @@ ModuleRegistry.registerModules([
 
 // Custom Cell Renderers
 const StatusRenderer = (params: ICellRendererParams) => {
-  const status = params.value as ShipmentOrderStatus;
-  const statusColors = {
-    draft: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-    confirmed: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    shipped: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    booked: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-    modified: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-    cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  // Handle both numeric status codes and status_description string
+  const statusCode = params.data?.vendor_booking_status as number;
+  const statusDescription = params.data?.status_description as string;
+  
+  const statusColors: { [key: number]: string } = {
+    5: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200", // Draft
+    10: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", // Confirmed
+    15: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", // Shipped
+    20: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", // Booked
+    25: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200", // Modified
+    30: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200", // Cancelled
   };
 
-  const getStatusText = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'draft': 'Draft',
-      'confirmed': 'Confirmed',
-      'booked': 'Booked',
-      'modified': 'Modified',
-      'shipped': 'Shipped',
-      'cancelled': 'Cancelled'
+  const getStatusText = (code: number | undefined): string => {
+    const statusMap: { [key: number]: string } = {
+      5: 'Draft',
+      10: 'Confirmed',
+      15: 'Shipped',
+      20: 'Booked',
+      25: 'Modified',
+      30: 'Cancelled'
     };
-    return statusMap[status] || status;
+    return statusMap[code || 5] || 'Draft';
   };
+
+  const displayStatus = statusDescription || getStatusText(statusCode);
+  const statusColor = statusColors[statusCode || 5] || statusColors[5];
 
   return (
-    <span
-      className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
-        statusColors[status] || statusColors.draft
-      }`}
-    >
-      {getStatusText(status) || "Draft"}
+    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColor}`}>
+      {displayStatus}
     </span>
   );
 };
@@ -184,9 +186,14 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
             order_type: "desc"
           };
 
-          // Add search filter if present
+          // Add search filter if present (search across multiple fields)
           if (searchTerm) {
+            // Search can match vendor_booking_number, shipper, consignee, carrier_booking_number, etc.
+            // For now, using vendor_booking_number as primary search field
             requestParams.vendor_booking_number = searchTerm;
+            // You can also add other search fields here if needed
+            // requestParams.shipper = searchTerm;
+            // requestParams.consignee = searchTerm;
           }
 
           // Handle sorting from AG Grid
@@ -199,22 +206,21 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
           // Call your API
           const response = await shipmentOrderService.listShipmentOrders(requestParams);
           
-          // Calculate active/inactive from results
+          // Calculate active/inactive from results using is_active field
           const results = response.results || [];
           const activeCount = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status !== 'cancelled'
+            item.is_active !== false && item.is_active !== undefined
           ).length;
           const inactiveCount = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status === 'cancelled'
+            item.is_active === false
           ).length;
 
           // Update stats from response
           setTotal(response.count || 0);
-          // For active/inactive, we'll use the total count as approximation
-          // Since API doesn't provide these, we calculate from current page
-          // In a real scenario, you might want to fetch these separately
-          setTotalActive(response.count || 0); // Approximation
-          setTotalInactive(0); // Approximation
+          // Note: These are approximations from current page only
+          // For accurate counts, API should provide total_is_active and total_inactive
+          setTotalActive(activeCount);
+          setTotalInactive(inactiveCount);
 
           // For server-side row model with pagination, we need to return the exact row count
           const rowsThisPage = results;
@@ -305,13 +311,17 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
       cellRenderer: BookingNumberRenderer,
     },
     {
-      field: "vendor_booking_status",
+      field: "status_description",
       headerName: "Status",
       minWidth: 120,
       flex: 1,
       sortable: true,
       filter: false,
       cellRenderer: StatusRenderer,
+      valueGetter: (params) => {
+        // Return status_description if available, otherwise use vendor_booking_status
+        return params.data?.status_description || params.data?.vendor_booking_status;
+      },
     },
     {
       field: "shipper",
@@ -341,25 +351,39 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
       cellRenderer: NameRenderer,
     },
     {
-      field: "transportation_mode",
+      field: "transportation_mode_description",
       headerName: "Transport Mode",
       minWidth: 150,
       flex: 1,
       sortable: true,
       filter: false,
       valueFormatter: (params: ValueFormatterParams) => {
-        return params.value ? String(params.value).charAt(0).toUpperCase() + String(params.value).slice(1) : "N/A";
+        // Handle numeric IDs: 5=Ocean, 10=Air, 15=Truck, 20=Rail
+        const modeMap: { [key: number]: string } = {
+          5: 'Ocean',
+          10: 'Air',
+          15: 'Truck',
+          20: 'Rail'
+        };
+        return modeMap[params.value as number] || params.value || "N/A";
       },
     },
     {
-      field: "service_type",
+      field: "service_type_description",
       headerName: "Service Type",
       minWidth: 120,
       flex: 1,
       sortable: true,
       filter: false,
       valueFormatter: (params: ValueFormatterParams) => {
-        return params.value ? String(params.value).toUpperCase() : "N/A";
+        // Use service_type_description if available, otherwise format numeric ID
+        if (params.value) return params.value;
+        const serviceType = params.data?.service_type;
+        const serviceMap: { [key: number]: string } = {
+          5: 'CY',
+          10: 'CFS'
+        };
+        return serviceMap[serviceType as number] || serviceType || "N/A";
       },
     },
     {
@@ -372,25 +396,45 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
       cellRenderer: DateRenderer,
     },
     {
-      field: "volume",
-      headerName: "Volume (CBM)",
-      minWidth: 120,
+      field: "volume_booked",
+      headerName: "Volume Booked (CBM)",
+      minWidth: 140,
       flex: 1,
       sortable: true,
       filter: false,
       valueFormatter: (params: ValueFormatterParams) => {
-        return params.value ? `${params.value} CBM` : "0 CBM";
+        return params.value ? `${params.value} CBM` : "N/A";
       },
     },
     {
-      field: "weight",
-      headerName: "Weight (KG)",
-      minWidth: 120,
+      field: "weight_booked",
+      headerName: "Weight Booked (KG)",
+      minWidth: 140,
       flex: 1,
       sortable: true,
       filter: false,
       valueFormatter: (params: ValueFormatterParams) => {
-        return params.value ? `${params.value} KG` : "0 KG";
+        return params.value ? `${params.value} KG` : "N/A";
+      },
+    },
+    {
+      field: "is_active",
+      headerName: "Active",
+      minWidth: 100,
+      flex: 0.8,
+      sortable: true,
+      filter: false,
+      cellRenderer: (params: ICellRendererParams) => {
+        const isActive = params.value !== false;
+        return (
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+            isActive
+              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+          }`}>
+            {isActive ? "Active" : "Inactive"}
+          </span>
+        );
       },
     },
     {
