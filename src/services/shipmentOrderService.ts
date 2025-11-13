@@ -58,10 +58,13 @@ export interface ShipmentOrderInput {
   agent_reference?: string;
   volume_booked?: number;
   volume_actual?: number;
+  volume_shipped?: number;
   weight_booked?: number;
   weight_actual?: number;
+  weight_shipped?: number;
   quantity_booked?: number;
   quantity_actual?: number;
+  quantity_shipped?: number;
   custom_field_values?: ShipmentFieldValue[];
 }
 
@@ -481,8 +484,8 @@ class ShipmentOrderService {
     if (!data.hs_code?.trim()) errors.push('HS Code is required');
     if (!data.customer) errors.push('Customer is required');
 
-    // Dangerous goods validation
-    if (data.cargo_type === 'dg' && !data.dangerous_goods_notes?.trim()) {
+    // Dangerous goods validation (cargo_type 15 = Dangerous Goods)
+    if (data.cargo_type === 15 && !data.dangerous_goods_notes?.trim()) {
       errors.push('Dangerous goods notes are required when cargo type is Dangerous Goods');
     }
 

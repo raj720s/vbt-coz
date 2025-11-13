@@ -2,7 +2,7 @@
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
-import Breadcrumb from "@/components/common/Breadcrumb";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import Image from "next/image";
@@ -249,7 +249,7 @@ const AppHeader: React.FC = () => {
 
                   {/* Mobile Dropdown */}
                   {activeDropdown === item.id && (
-                    <div className="mt-2 ml-6 space-y-1">
+                    <div className="mt-2 ml-auto space-y-1">
                       {item.subItems.map((subItem) => (
                         <Link
                           key={subItem.path}
@@ -273,10 +273,6 @@ const AppHeader: React.FC = () => {
               ))}
             </nav>
 
-            {/* Mobile Breadcrumb */}
-            <div className="mt-4 pt-4 border-t border-brand-700">
-              <Breadcrumb />
-            </div>
           </div>
         </div>
       )}

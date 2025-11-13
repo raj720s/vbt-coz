@@ -141,10 +141,13 @@ export interface ShipmentOrderFormData {
   // Volume/Weight/Quantity
   volume_booked?: number;
   volume_actual?: number;
+  volume_shipped?: number;
   weight_booked?: number;
   weight_actual?: number;
+  weight_shipped?: number;
   quantity_booked?: number;
   quantity_actual?: number;
+  quantity_shipped?: number;
   
   // Custom field values
   custom_field_values?: CustomFieldValue[];
