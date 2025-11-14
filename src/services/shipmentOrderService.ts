@@ -32,6 +32,8 @@ export interface ShipmentOrderInput {
   cargo_readiness_date: string; // ISO date-time
   notify_party_1?: string;
   notify_party_2?: string;
+  origin_agent?: string;
+  destination_agent?: string;
   hs_code: string;
   cargo_description?: string | null;
   marks_and_numbers?: string | null;
@@ -377,6 +379,8 @@ class ShipmentOrderService {
     if (data.transportation_mode !== undefined) transformed.transportation_mode = data.transportation_mode;
     if (data.notify_party_1 !== undefined && data.notify_party_1 !== null) transformed.notify_party_1 = data.notify_party_1;
     if (data.notify_party_2 !== undefined && data.notify_party_2 !== null) transformed.notify_party_2 = data.notify_party_2;
+    if (data.origin_agent !== undefined && data.origin_agent !== null) transformed.origin_agent = data.origin_agent;
+    if (data.destination_agent !== undefined && data.destination_agent !== null) transformed.destination_agent = data.destination_agent;
     if (data.cargo_description !== undefined && data.cargo_description !== null) transformed.cargo_description = data.cargo_description;
     if (data.marks_and_numbers !== undefined && data.marks_and_numbers !== null) transformed.marks_and_numbers = data.marks_and_numbers;
     if (data.cargo_type !== undefined && data.cargo_type !== null) transformed.cargo_type = data.cargo_type;

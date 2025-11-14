@@ -147,6 +147,7 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
   const [confirmedCount, setConfirmedCount] = useState(0);
   const [modifiedCount, setModifiedCount] = useState(0);
   const [shippedCount, setShippedCount] = useState(0);
+  const [cancelledCount, setCancelledCount] = useState(0);
   const gridRef = useRef<AgGridReact<ShipmentListResponse>>(null);
 
   // Global filter state for search functionality
@@ -217,7 +218,7 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
           // Call your API
           const response = await shipmentOrderService.listShipmentOrders(requestParams);
           
-          // Calculate active/inactive and status counts from results
+          // Calculate active/inactive from results (if needed)
           const results = response.results || [];
           const activeCount = results.filter((item: ShipmentListResponse) => 
             item.is_active !== false && item.is_active !== undefined
@@ -226,34 +227,18 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
             item.is_active === false
           ).length;
 
-          // Count by status (status codes: 5=Draft, 10=Confirmed, 15=Shipped, 20=Booked, 25=Modified, 30=Cancelled)
-          const draft = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status === 5
-          ).length;
-          const booked = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status === 20
-          ).length;
-          const confirmed = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status === 10
-          ).length;
-          const modified = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status === 25
-          ).length;
-          const shipped = results.filter((item: ShipmentListResponse) => 
-            item.vendor_booking_status === 15
-          ).length;
-
-          // Update stats from response
+          // Update stats from API response - use status counts from API
           setTotal(response.count || 0);
-          // Note: These are approximations from current page only
-          // For accurate counts, API should provide total counts by status
           setTotalActive(activeCount);
           setTotalInactive(inactiveCount);
-          setDraftCount(draft);
-          setBookedCount(booked);
-          setConfirmedCount(confirmed);
-          setModifiedCount(modified);
-          setShippedCount(shipped);
+          
+          // Use status counts directly from API response
+          setDraftCount(response.draft || 0);
+          setBookedCount(response.booked || 0);
+          setConfirmedCount(response.confirmed || 0);
+          setModifiedCount(response.modified || 0);
+          setShippedCount(response.shipped || 0);
+          setCancelledCount(response.cancelled || 0);
 
           // For server-side row model with pagination, we need to return the exact row count
           const rowsThisPage = results;
@@ -582,7 +567,7 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
         )}
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 gap-2 mb-8">
           <div className="bg-purple-600 text-white rounded-lg px-6 py-4 shadow-sm">
             <div className="text-3xl font-bold">{total}</div>
             <div className="text-sm opacity-90">Total Bookings</div>
@@ -630,6 +615,15 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
             <div>
               <div className="text-2xl font-semibold text-gray-900">{shippedCount}</div>
               <div className="text-xs text-gray-500">Shipped</div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <TrashBinIcon className="text-red-600 text-sm" />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold text-gray-900">{cancelledCount}</div>
+              <div className="text-xs text-gray-500">Cancelled</div>
             </div>
           </div>
         </div>

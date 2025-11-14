@@ -35,6 +35,7 @@ import { shipmentOrderService } from "@/services/shipmentOrderService";
 import { polService } from "@/services/polService";
 import { podService } from "@/services/podService";
 import { customerService } from "@/services/customerService";
+import { userCustomerService } from "@/services/userCustomerService";
 import { POLResponse, PODResponse, CustomerResponse } from "@/types/api";
 import SearchableSelect from "@/components/form/input/SearchableSelect";
 import { PlusIcon, TrashBinIcon, ChevronDownIcon } from "@/icons";
@@ -55,6 +56,8 @@ const shipmentOrderSchema = z.object({
   service_type: z.number().min(1, "Service type is required"),
   notify_party_1: z.string().optional(),
   notify_party_2: z.string().optional(),
+  origin_agent: z.string().optional(),
+  destination_agent: z.string().optional(),
   hs_code: z.string().min(1, "HS Code is required"),
   cargo_description: z.string().optional(),
   marks_and_numbers: z.string().optional(),
@@ -167,6 +170,8 @@ export const ShipmentOrderForm: React.FC<ShipmentOrderFormProps> = ({
       service_type: undefined,
       notify_party_1: "",
       notify_party_2: "",
+      origin_agent: "",
+      destination_agent: "",
       hs_code: "",
       cargo_description: "",
       marks_and_numbers: "",
@@ -268,13 +273,15 @@ export const ShipmentOrderForm: React.FC<ShipmentOrderFormProps> = ({
       return cached;
     }
 
-    // Use deduplicated API call
+    // Use deduplicated API call - now using userCustomerService
     const customer = await callWithDeduplication(
       `customer-${customerId}`,
-      () => customerService.getCustomer(customerId)
+      () => userCustomerService.getUserCustomer(customerId)
     );
 
-    setCachedCustomer(customerId, customer);
+    if (customer) {
+      setCachedCustomer(customerId, customer);
+    }
     return customer;
   }, [getCachedCustomer, setCachedCustomer, callWithDeduplication]);
 
@@ -548,7 +555,7 @@ export const ShipmentOrderForm: React.FC<ShipmentOrderFormProps> = ({
     try {
       return await callWithDeduplication(
         `customer-search-${query}`,
-        () => customerService.searchCustomers(query)
+        () => userCustomerService.searchUserCustomers(query)
       );
     } catch (error) {
       console.error("Failed to search customers:", error);
@@ -653,6 +660,8 @@ export const ShipmentOrderForm: React.FC<ShipmentOrderFormProps> = ({
       carrier_booking_number: data.carrier_booking_number || undefined,
       notify_party_1: data.notify_party_1 || undefined,
       notify_party_2: data.notify_party_2 || undefined,
+      origin_agent: data.origin_agent || undefined,
+      destination_agent: data.destination_agent || undefined,
       pickup_address: data.pickup_address || undefined,
       equipment_count: data.equipment_count || undefined,
       equipment_no: data.equipment_no || undefined,
@@ -712,6 +721,8 @@ export const ShipmentOrderForm: React.FC<ShipmentOrderFormProps> = ({
       carrier_booking_number: formData.carrier_booking_number || undefined,
       notify_party_1: formData.notify_party_1 || undefined,
       notify_party_2: formData.notify_party_2 || undefined,
+      origin_agent: formData.origin_agent || undefined,
+      destination_agent: formData.destination_agent || undefined,
       pickup_address: formData.pickup_address || undefined,
       equipment_count: formData.equipment_count || undefined,
       equipment_no: formData.equipment_no || undefined,
@@ -958,6 +969,24 @@ export const ShipmentOrderForm: React.FC<ShipmentOrderFormProps> = ({
                     {...register("pickup_address")}
                     placeholder="Enter pickup address"
                     error={errors.pickup_address?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="origin_agent">Origin Agent</Label>
+                  <Input
+                    id="origin_agent"
+                    {...register("origin_agent")}
+                    placeholder="Enter origin agent"
+                    error={errors.origin_agent?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="destination_agent">Destination Agent</Label>
+                  <Input
+                    id="destination_agent"
+                    {...register("destination_agent")}
+                    placeholder="Enter destination agent"
+                    error={errors.destination_agent?.message}
                   />
                 </div>
               </div>

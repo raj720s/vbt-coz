@@ -99,6 +99,8 @@ export interface ShipmentOrderFormData {
   cargo_readiness_date: string;
   notify_party_1?: string;
   notify_party_2?: string;
+  origin_agent?: string;
+  destination_agent?: string;
   
   // Cargo Details
   hs_code: string;
@@ -287,6 +289,12 @@ export interface ShipmentListResponse {
 export interface ShipmentListApiResponse {
   results: ShipmentListResponse[];
   count: number;
+  draft?: number;
+  confirmed?: number;
+  shipped?: number;
+  booked?: number;
+  modified?: number;
+  cancelled?: number;
   next?: string;
   previous?: string;
 }
