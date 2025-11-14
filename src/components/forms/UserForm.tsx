@@ -19,6 +19,7 @@ import { useAuth } from "@/context/AuthContext";
 // import ConditionalRender from "@/components/shared/ConditionalRender";
 
 import toast from "react-hot-toast";
+import { EyeIcon, EyeCloseIcon } from "@/icons";
 
 const createUserSchema = (isEditing: boolean) => z.object({
   first_name: z.string().min(2, "First name must be at least 2 characters"),
@@ -80,6 +81,8 @@ export const UserForm: React.FC<UserFormProps> = ({
   // State for roles
   const [roles, setRoles] = useState<RoleResponse[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Fetch roles
   useEffect(() => {
@@ -456,13 +459,26 @@ export const UserForm: React.FC<UserFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                {...register("password")}
-                type="password"
-                placeholder="Enter password"
-                className="w-full"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter password"
+                  className="w-full pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeCloseIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
               <p className="mt-1 text-sm text-gray-500">Password is required for new users</p>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
@@ -471,13 +487,26 @@ export const UserForm: React.FC<UserFormProps> = ({
 
             <div>
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                {...register("confirmPassword")}
-                type="password"
-                placeholder="Confirm password"
-                className="w-full"
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  {...register("confirmPassword")}
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm password"
+                  className="w-full pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? (
+                    <EyeCloseIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
               <p className="mt-1 text-sm text-gray-500">Confirm your password</p>
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>

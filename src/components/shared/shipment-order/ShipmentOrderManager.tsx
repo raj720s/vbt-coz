@@ -12,12 +12,18 @@ import {
 import { shipmentOrderService } from "@/services/shipmentOrderService";
 import { DeleteConfirmationModal } from "@/components/ui/modal/DeleteConfirmationModal";
 import Button from "@/components/ui/button/Button";
-import Input from "@/components/form/input/InputField";
 import { withSimplifiedRBAC, SimplifiedRBACProps } from "@/components/auth/withSimplifiedRBAC";
 import { 
   PlusIcon, 
   PencilIcon, 
-  TrashBinIcon, 
+  TrashBinIcon,
+  FileIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  TruckIcon,
+  FilterIcon,
+  DownloadIcon,
+  SettingsIcon,
 } from "@/icons";
 import toast from "react-hot-toast";
 
@@ -136,6 +142,11 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
   const [total, setTotal] = useState(0);
   const [totalActive, setTotalActive] = useState(0);
   const [totalInactive, setTotalInactive] = useState(0);
+  const [draftCount, setDraftCount] = useState(0);
+  const [bookedCount, setBookedCount] = useState(0);
+  const [confirmedCount, setConfirmedCount] = useState(0);
+  const [modifiedCount, setModifiedCount] = useState(0);
+  const [shippedCount, setShippedCount] = useState(0);
   const gridRef = useRef<AgGridReact<ShipmentListResponse>>(null);
 
   // Global filter state for search functionality
@@ -206,7 +217,7 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
           // Call your API
           const response = await shipmentOrderService.listShipmentOrders(requestParams);
           
-          // Calculate active/inactive from results using is_active field
+          // Calculate active/inactive and status counts from results
           const results = response.results || [];
           const activeCount = results.filter((item: ShipmentListResponse) => 
             item.is_active !== false && item.is_active !== undefined
@@ -215,12 +226,34 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
             item.is_active === false
           ).length;
 
+          // Count by status (status codes: 5=Draft, 10=Confirmed, 15=Shipped, 20=Booked, 25=Modified, 30=Cancelled)
+          const draft = results.filter((item: ShipmentListResponse) => 
+            item.vendor_booking_status === 5
+          ).length;
+          const booked = results.filter((item: ShipmentListResponse) => 
+            item.vendor_booking_status === 20
+          ).length;
+          const confirmed = results.filter((item: ShipmentListResponse) => 
+            item.vendor_booking_status === 10
+          ).length;
+          const modified = results.filter((item: ShipmentListResponse) => 
+            item.vendor_booking_status === 25
+          ).length;
+          const shipped = results.filter((item: ShipmentListResponse) => 
+            item.vendor_booking_status === 15
+          ).length;
+
           // Update stats from response
           setTotal(response.count || 0);
           // Note: These are approximations from current page only
-          // For accurate counts, API should provide total_is_active and total_inactive
+          // For accurate counts, API should provide total counts by status
           setTotalActive(activeCount);
           setTotalInactive(inactiveCount);
+          setDraftCount(draft);
+          setBookedCount(booked);
+          setConfirmedCount(confirmed);
+          setModifiedCount(modified);
+          setShippedCount(shipped);
 
           // For server-side row model with pagination, we need to return the exact row count
           const rowsThisPage = results;
@@ -530,124 +563,172 @@ function ShipmentOrderManager({ rbacContext }: ShipmentOrderManagerProps) {
   };
 
   return (
-    <div className="p-0">
-      {/* Header */}
-      <div className="py-2">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Shipment Orders
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Manage vendor booking shipment orders and container assignments
-        </p>
-
-        {!canDeleteShipment && (
-          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-md">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-yellow-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm">
-                <strong>Read-only mode:</strong> You can view and edit shipment orders, but cannot delete records.
-              </span>
+    <div className="">
+      <div className=" mx-auto">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm">{error}</p>
+              </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div className="bg-purple-600 text-white rounded-lg px-6 py-4 shadow-sm">
+            <div className="text-3xl font-bold">{total}</div>
+            <div className="text-sm opacity-90">Total Bookings</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <FileIcon className="text-yellow-600 text-sm" />
             </div>
-            <div className="ml-3">
-              <p className="text-sm">{error}</p>
+            <div>
+              <div className="text-2xl font-semibold text-gray-900">{draftCount}</div>
+              <div className="text-xs text-gray-500">Draft</div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <CalendarIcon className="text-purple-600 text-sm" />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold text-gray-900">{bookedCount}</div>
+              <div className="text-xs text-gray-500">Booked</div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+              <CheckCircleIcon className="text-teal-600 text-sm" />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold text-gray-900">{confirmedCount}</div>
+              <div className="text-xs text-gray-500">Confirmed</div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <PencilIcon className="text-blue-600 text-sm" />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold text-gray-900">{modifiedCount}</div>
+              <div className="text-xs text-gray-500">Modified</div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <TruckIcon className="text-green-600 text-sm" />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold text-gray-900">{shippedCount}</div>
+              <div className="text-xs text-gray-500">Shipped</div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 py-4">
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Total</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
+        {/* Actions Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="relative flex-1 max-w-md">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search"
+                value={globalFilter}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
+            >
+              <SettingsIcon className="w-4 h-4" />
+              Customise
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
+            >
+              <FilterIcon className="w-4 h-4" />
+              Filter
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
+            >
+              <DownloadIcon className="w-4 h-4" />
+              Export
+            </Button>
+            <Button
+              type="button"
+              onClick={() => router.push('/shipment-orders/add')}
+              className="bg-brand-500 text-white px-6 py-2 rounded-lg hover:bg-brand-600 flex items-center gap-2 text-sm font-medium"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Add Booking
+            </Button>
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Active</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totalActive}</div>
-        </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Inactive</div>
-          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
-        </div>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col lg:flex-row gap-4 py-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search orders by Booking Number"
-            value={globalFilter}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="max-w-md"
-          />
+        {/* Table */}
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto" style={{ height: `${gridHeight}px` }}>
+            <AgGridReact
+              ref={gridRef}
+              columnDefs={columnDefs}
+              defaultColDef={defaultColDef}
+              loading={loading}
+              
+              // Server-side row model configuration
+              rowModelType="serverSide"
+              
+              // Cache configuration
+              cacheBlockSize={10} // Must match paginationPageSize
+              maxBlocksInCache={10} // Keep multiple pages in cache
+              
+              // Pagination configuration
+              pagination={true}
+              paginationPageSize={10} // Must match cacheBlockSize
+              paginationPageSizeSelector={[10, 25, 50, 100]}
+              
+              // Sorting and filtering on server (handled in datasource)
+              
+              onGridReady={handleGridReady}
+              domLayout="normal"
+              animateRows={true}
+              className="ag-theme-alpine"
+              
+              rowSelection={{ mode: "multiRow", groupSelects: "descendants" }}
+              
+              // Default export configurations
+              defaultCsvExportParams={{
+                fileName: `shipment_orders_${new Date().toISOString().split('T')[0]}.csv`,
+                onlySelectedAllPages: true,
+              }}
+              defaultExcelExportParams={{
+                fileName: `shipment_orders_${new Date().toISOString().split('T')[0]}.xlsx`,
+                sheetName: "Shipment Orders",
+                onlySelectedAllPages: true,
+              }}
+            />
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            onClick={() => router.push('/shipment-orders/add')}
-            className="flex items-center gap-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white whitespace-nowrap"
-          >
-            <PlusIcon className="w-4 h-4" />
-            Add Shipment Order
-          </Button>
-        </div>
-      </div>
-
-      {/* AG Grid Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: `${gridHeight}px` }}>
-        <AgGridReact
-          ref={gridRef}
-          columnDefs={columnDefs}
-          defaultColDef={defaultColDef}
-          loading={loading}
-          
-          // Server-side row model configuration
-          rowModelType="serverSide"
-          
-          // Cache configuration
-          cacheBlockSize={10} // Must match paginationPageSize
-          maxBlocksInCache={10} // Keep multiple pages in cache
-          
-          // Pagination configuration
-          pagination={true}
-          paginationPageSize={10} // Must match cacheBlockSize
-          paginationPageSizeSelector={[10, 25, 50, 100]}
-          
-          // Sorting and filtering on server (handled in datasource)
-          
-          onGridReady={handleGridReady}
-          domLayout="normal"
-          animateRows={true}
-          className="ag-theme-alpine"
-          
-          rowSelection={{ mode: "multiRow", groupSelects: "descendants" }}
-          
-          // Default export configurations
-          defaultCsvExportParams={{
-            fileName: `shipment_orders_${new Date().toISOString().split('T')[0]}.csv`,
-            onlySelectedAllPages: true,
-          }}
-          defaultExcelExportParams={{
-            fileName: `shipment_orders_${new Date().toISOString().split('T')[0]}.xlsx`,
-            sheetName: "Shipment Orders",
-            onlySelectedAllPages: true,
-          }}
-        />
       </div>
 
       {/* Delete Confirmation Modal */}

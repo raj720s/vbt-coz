@@ -112,7 +112,7 @@ export default function ShipmentOrderEditClient() {
       )}
 
       {/* Form Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg">
         <ShipmentOrderForm
           initialData={
             shipmentData

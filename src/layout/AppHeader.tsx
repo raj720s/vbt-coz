@@ -46,31 +46,7 @@ const AppHeader: React.FC = () => {
     if (!user) return [];
     
     const items = [
-      {
-        id: "master-data",
-        name: "Master Data Management",
-        icon: <HiOutlineCircleStack className="w-5 h-5" />,
-        isActive: pathname.includes("/port-customer-master") || 
-                  pathname.includes("/container-types") ||
-                  pathname.includes("/container-priority") ||
-                  pathname.includes("/container-thresholds") ||
-                  pathname.includes("/company-management") ||
-                       pathname.includes("/port-customer-master/company-customer-mappings") ||
-                  pathname.includes("/carrier-management") ||
-                  pathname.includes("/supplier-management"),
-        subItems: [
-          { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
-          { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
-          { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
-          { name: "Company", path: "/company-management", moduleId: 65 },
-               { name: "Company Customer Mappings", path: "/port-customer-master/company-customer-mappings", moduleId: 66 },
-          { name: "Carrier", path: "/carrier-management", moduleId: 68 },
-          // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
-          // { name: "Container Types", path: "/container-types", moduleId: 50 },
-          // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
-          // { name: "Container Thresholds", path: "/container-thresholds", moduleId: 50 },
-        ],
-      },
+     
       {
         id: "vendor-booking",
         name: "Vendor Booking Management",
@@ -100,7 +76,33 @@ const AppHeader: React.FC = () => {
           { name: "User Management", path: "/user-management", moduleId: 40 },
           { name: "Role Management", path: "/role-management", moduleId: 10 },
         ],
-      });
+      },
+      {
+        id: "master-data",
+        name: "Master Data Management",
+        icon: <HiOutlineCircleStack className="w-5 h-5" />,
+        isActive: pathname.includes("/port-customer-master") || 
+                  pathname.includes("/container-types") ||
+                  pathname.includes("/container-priority") ||
+                  pathname.includes("/container-thresholds") ||
+                  pathname.includes("/company-management") ||
+                       pathname.includes("/port-customer-master/company-customer-mappings") ||
+                  pathname.includes("/carrier-management") ||
+                  pathname.includes("/supplier-management"),
+        subItems: [
+          { name: "Company", path: "/company-management", moduleId: 65 },
+          { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
+          { name: "Company Customer Mappings", path: "/port-customer-master/company-customer-mappings", moduleId: 66 },
+          { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
+          { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
+          { name: "Carrier", path: "/carrier-management", moduleId: 68 },
+          // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
+          // { name: "Container Types", path: "/container-types", moduleId: 50 },
+          // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
+          // { name: "Container Thresholds", path: "/container-thresholds", moduleId: 50 },
+        ],
+      },
+    );
     }
 
     return items;
@@ -143,7 +145,7 @@ const AppHeader: React.FC = () => {
         </div>
 
         {/* Center - Desktop Navigation Menu */}
-        <nav className="hidden lg:flex items-center space-x-2 flex-1 justify-center">
+        <nav className={`hidden lg:flex items-center space-x-2 flex-1 ${isAdmin ? 'justify-center' : 'justify-start'}`}>
           {navItems.map((item) => {
             // Dropdown item
             return (
