@@ -4,17 +4,15 @@ import Button from "@/components/ui/button/Button";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Input from "@/components/form/input/InputField";
-import { PencilIcon, TrashBinIcon, PlusIcon, AlertIcon, CheckCircleIcon } from "@/icons";
+import { PencilIcon, TrashBinIcon, PlusIcon, CheckCircleIcon, AlertIcon } from "@/icons";
 import { DeleteConfirmationModal } from "@/components/ui/modal/DeleteConfirmationModal";
 import toast from "react-hot-toast";
+import { withSimplifiedRBAC, SimplifiedRBACProps } from "@/components/auth/withSimplifiedRBAC";
 import { 
   CompanyCustomerMapping, 
-  CompanyCustomerMappingListRequest,
-  CompanyCustomerMappingListResponse,
+  CompanyCustomerMappingListRequest 
 } from "@/types/companyCustomerMapping";
 import { companyCustomerMappingService } from "@/services/companyCustomerMappingService";
-import { withSimplifiedRBAC, SimplifiedRBACProps } from "@/components/auth/withSimplifiedRBAC";
-import SearchableMultiSelect from "@/components/form/input/SearchableMultiSelect";
 
 // AG Grid imports
 import type {
@@ -84,129 +82,33 @@ const NameRenderer = (params: ICellRendererParams) => {
   );
 };
 
-// Customers Multi-select Cell Renderer for AG Grid
-const CustomersCellRenderer = (params: ICellRendererParams) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>(params.data?.customer_ids || []);
-  const cellRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setSelectedCustomerIds(params.data?.customer_ids || []);
-  }, [params.data?.customer_ids]);
-
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (cellRef.current && !cellRef.current.contains(event.target as Node)) {
-        setIsEditing(false);
-      }
-    };
-
-    if (isEditing) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [isEditing]);
-
-  const handleSave = async () => {
-    try {
-      await companyCustomerMappingService.updateMapping(params.data.id, {
-        customer_ids: selectedCustomerIds,
-      });
-      params.data.customer_ids = selectedCustomerIds;
-      params.data.customers = params.data.customers.filter((c: any) => 
-        selectedCustomerIds.includes(c.id)
-      );
-      params.api.refreshCells({ rowNodes: [params.node!] });
-      setIsEditing(false);
-      toast.success("Customers updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update customers");
-    }
-  };
-
-  const searchCustomers = async (query: string) => {
-    try {
-      const results = await companyCustomerMappingService.searchCustomers(query);
-      return results;
-    } catch (e) {
-      console.error("Failed to fetch customers:", e);
-      return [];
-    }
-  };
-
-  if (isEditing) {
+// Customers Cell Renderer - Display list of customers
+const CustomersRenderer = (params: ICellRendererParams) => {
+  const customers = params.data?.customers || [];
+  
+  if (customers.length === 0) {
     return (
-      <div ref={cellRef} className="w-full" onClick={(e) => e.stopPropagation()}>
-        <SearchableMultiSelect
-          id={`customer-select-${params.data.id}`}
-          label=""
-          placeholder="Select customers"
-          value={selectedCustomerIds}
-          onChange={(value) => setSelectedCustomerIds(value as number[])}
-          onSearch={searchCustomers}
-          displayFormat={(option: any) => `${option.name} (${option.customer_code || option.code})`}
-          searchPlaceholder="Search customers..."
-          className="w-full"
-        />
-        <div className="flex gap-2 mt-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleSave}
-            className="text-xs px-2 py-1"
-          >
-            Save
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setSelectedCustomerIds(params.data?.customer_ids || []);
-              setIsEditing(false);
-            }}
-            className="text-xs px-2 py-1"
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
+      <span className="text-gray-500 dark:text-gray-400 text-sm italic">
+        No customers
+      </span>
     );
   }
 
-  const customers = params.data?.customers || [];
-  const displayText = customers.length > 0
-    ? customers.map((c: any) => c.name).join(", ")
-    : "No customers";
-
   return (
-    <div
-      className="w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded"
-      onClick={() => setIsEditing(true)}
-      title={displayText}
-    >
-      <div className="flex flex-wrap gap-1">
-        {customers.length > 0 ? (
-          customers.slice(0, 3).map((customer: any) => (
-            <span
-              key={customer.id}
-              className="inline-flex items-center px-2 py-1 text-xs bg-theme-purple-100 dark:bg-theme-purple-900 text-theme-purple-800 dark:text-theme-purple-200 rounded"
-            >
-              {customer.name}
-            </span>
-          ))
-        ) : (
-          <span className="text-gray-400 dark:text-gray-500 text-sm">No customers</span>
-        )}
-        {customers.length > 3 && (
-          <span className="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-            +{customers.length - 3} more
-          </span>
-        )}
-      </div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-        Click to edit
-      </div>
+    <div className="flex flex-wrap gap-1 py-1">
+      {customers.slice(0, 3).map((customer: any, index: number) => (
+        <span
+          key={index}
+          className="inline-flex items-center px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded"
+        >
+          {customer.customer_name}
+        </span>
+      ))}
+      {customers.length > 3 && (
+        <span className="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+          +{customers.length - 3} more
+        </span>
+      )}
     </div>
   );
 };
@@ -238,7 +140,7 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
   // Redirect to add page if action=add
   useEffect(() => {
     if (action === 'add') {
-      router.push('/company-customer-mappings/add');
+      router.push('/port-customer-master/company-customer-mappings/add');
     }
   }, [action, router]);
 
@@ -268,11 +170,13 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
           const pageSize = endRow - startRow;
           const page = Math.floor(startRow / pageSize) + 1;
 
+          console.log(`Requesting page ${page} with pageSize ${pageSize} (startRow: ${startRow}, endRow: ${endRow})`);
+
           // Build request parameters for your API
           const requestParams: CompanyCustomerMappingListRequest = {
             page: page,
             page_size: pageSize,
-            order_by: "company_name",
+            order_by: "company_id",
             order_type: "asc"
           };
 
@@ -291,6 +195,8 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
           // Call your API
           const response = await companyCustomerMappingService.getMappings(requestParams);
           
+          console.log(`API Response: count=${response.count}, results length=${response.results?.length}`);
+          
           // Update stats from response
           setTotal(response.count || 0);
           setTotalActive(response.total_is_active || 0);
@@ -298,15 +204,16 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
 
           // For server-side row model with pagination, return exact row count
           const rowsThisPage = response.results || [];
-          const lastRow = response.count || 0;
-
+          
+          // Call success callback with data and total row count
           params.success({
             rowData: rowsThisPage,
-            rowCount: lastRow,
+            rowCount: response.count || 0, // Total number of rows available on server
           });
-        } catch (err: any) {
-          console.error("Error fetching mappings:", err);
-          setError(err.message || "Failed to load mappings");
+
+        } catch (error: any) {
+          console.error('Error loading company customer mappings:', error);
+          setError(error.message || 'Failed to load company customer mappings');
           params.fail();
         } finally {
           setLoading(false);
@@ -315,44 +222,113 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
     };
   }, []);
 
-  // Handle grid ready
-  const handleGridReady = useCallback((params: GridReadyEvent) => {
-    const datasource = getServerSideDatasource(globalFilter);
-    params.api.setGridOption("serverSideDatasource", datasource);
-  }, [getServerSideDatasource, globalFilter]);
-
-  // Refresh grid when global filter changes
-  useEffect(() => {
-    if (gridRef.current?.api) {
-      const datasource = getServerSideDatasource(globalFilter);
-      gridRef.current.api.setGridOption("serverSideDatasource", datasource);
+  const handleDeleteClick = (mapping: CompanyCustomerMapping) => {
+    if (!canDeleteMapping) {
+      toast.error("You don't have permission to delete company customer mappings");
+      return;
     }
-  }, [globalFilter, getServerSideDatasource]);
+    
+    setDeletingItem(mapping);
+    setDeleteModalOpen(true);
+  };
 
-  // Actions Cell Renderer
-  const ActionsRenderer = useCallback((params: ICellRendererParams) => {
-    const handleEditClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      router.push(`/company-customer-mappings/edit?id=${params.data.id}`);
+  // Actions Cell Renderer Component
+  const ActionsRenderer = (params: ICellRendererParams) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+    
+    const handleEditClick = () => {
+      router.push(`/port-customer-master/company-customer-mappings/edit?id=${params.data.company_id}`);
     };
 
-    const handleDeleteButtonClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setDeletingItem(params.data);
-      setDeleteModalOpen(true);
+    const handleDeleteButtonClick = () => {
+      handleDeleteClick(params.data);
     };
 
-    // For inactive records, show restore button
-    if (!params.data.is_active) {
+    const handleRestoreClick = async () => {
+      if (isUpdating) return;
+      
+      try {
+        setIsUpdating(true);
+        
+        // Get customer names from the mapping
+        const customerNames = params.data.customers?.map((customer: any) => customer.customer_name) || [];
+        
+        if (customerNames.length === 0) {
+          toast.error("No customers found in this mapping");
+          return;
+        }
+        
+        // Update mapping with is_active: true to restore it
+        await companyCustomerMappingService.updateMapping(params.data.company_id, {
+          company_id: params.data.company_id,
+          customer_names: customerNames,
+          is_active: true,
+        });
+        
+        toast.success(`Customer mapping for "${params.data.company_name}" has been restored successfully`);
+        
+        // Refresh the grid data
+        if (gridRef.current) {
+          const api = gridRef.current.api;
+          const datasource = getServerSideDatasource(globalFilter);
+          api.setGridOption('serverSideDatasource', datasource);
+        }
+        
+      } catch (error: any) {
+        console.error('Error restoring customer mapping:', error);
+        toast.error(error.message || 'Failed to restore customer mapping');
+      } finally {
+        setIsUpdating(false);
+      }
+    };
+
+    // Check if mapping is inactive
+    // Handle boolean false, string "false", 0, null, undefined
+    // Show restore button if is_active is falsy (but not if it's explicitly true)
+    const isActiveValue = params.data.is_active;
+    const isMappingInactive = isActiveValue === false || 
+                             isActiveValue === 0 || 
+                             isActiveValue === null || 
+                             (typeof isActiveValue === 'string' && isActiveValue.toLowerCase() === 'false');
+    
+    // Debug log to check the data structure (only for inactive or undefined)
+    if (!isActiveValue || isActiveValue === false) {
+      console.log('CompanyCustomerMapping ActionsRenderer:', {
+        company_id: params.data.company_id,
+        company_name: params.data.company_name,
+        is_active: params.data.is_active,
+        isActiveValue,
+        isMappingInactive,
+        type: typeof params.data.is_active,
+      });
+    }
+    
+    if (isMappingInactive) {
       return (
-        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
           <Button
             size="sm"
             variant="outline"
-            onClick={handleEditClick}
-            className="p-1"
+            onClick={handleRestoreClick}
+            disabled={isUpdating}
+            className="px-3 py-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300 disabled:opacity-50"
           >
-            <PencilIcon className="w-4 h-4" />
+            {isUpdating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Activating...
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Restore
+              </>
+            )}
           </Button>
         </div>
       );
@@ -369,7 +345,7 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
         >
           <PencilIcon className="w-4 h-4" />
         </Button>
-        
+
         {canDeleteMapping && (
           <Button
             size="sm"
@@ -382,7 +358,7 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
         )}
       </div>
     );
-  }, [canDeleteMapping, router, globalFilter]);
+  };
 
   // Column Definitions
   const columnDefs = useMemo<ColDef[]>(() => [
@@ -398,6 +374,14 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
       lockPosition: 'left',
       checkboxSelection: false,
     },
+    // {
+    //   field: "company_id",
+    //   headerName: "Company ID",
+    //   minWidth: 120,
+    //   flex: 0.8,
+    //   sortable: true,
+    //   filter: false,
+    // },
     {
       field: "company_name",
       headerName: "Company Name",
@@ -408,12 +392,13 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
       cellRenderer: NameRenderer,
     },
     {
-      field: "company_type_label",
-      headerName: "Company Type",
-      minWidth: 150,
+      field: "is_active",
+      headerName: "Status",
+      minWidth: 120,
       flex: 1,
       sortable: true,
       filter: false,
+      cellRenderer: StatusRenderer,
     },
     {
       field: "customers",
@@ -422,17 +407,7 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
       flex: 3,
       sortable: false,
       filter: false,
-      cellRenderer: CustomersCellRenderer,
-      editable: false,
-    },
-    {
-      field: "is_active",
-      headerName: "Status",
-      width: 120,
-      minWidth: 120,
-      sortable: true,
-      filter: false,
-      cellRenderer: StatusRenderer,
+      cellRenderer: CustomersRenderer,
     },
   ], [ActionsRenderer]);
 
@@ -441,90 +416,155 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
     resizable: true,
     sortable: true,
     filter: false,
+    flex: 1,
+    minWidth: 100,
   }), []);
 
-  // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     if (!deletingItem) return;
-
-    try {
-      setLoading(true);
-      await companyCustomerMappingService.deleteMapping(deletingItem.id);
-      toast.success("Mapping deleted successfully");
-      
-      // Refresh grid
-      if (gridRef.current?.api) {
-        const datasource = getServerSideDatasource(globalFilter);
-        gridRef.current.api.setGridOption("serverSideDatasource", datasource);
-      }
-      
+    
+    if (!canDeleteMapping) {
+      toast.error("You don't have permission to delete company customer mappings");
       setDeleteModalOpen(false);
       setDeletingItem(null);
-    } catch (err: any) {
-      console.error("Error deleting mapping:", err);
-      toast.error(err.message || "Failed to delete mapping");
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Get customer names from the mapping
+      const customerNames = deletingItem.customers?.map((customer: any) => customer.customer_name) || [];
+      
+      // Soft delete by setting is_active to false
+      await companyCustomerMappingService.deleteMapping(deletingItem.company_id, customerNames);
+      toast.success('Company customer mapping deleted successfully');
+      setDeleteModalOpen(false);
+      setDeletingItem(null);
+      
+      // Refresh data by updating the datasource
+      if (gridRef.current) {
+        const api = gridRef.current.api;
+        const datasource = getServerSideDatasource(globalFilter);
+        api.setGridOption('serverSideDatasource', datasource);
+      }
+    } catch (error: any) {
+      console.error('Error deleting company customer mapping:', error);
+      toast.error(error.message || 'Failed to delete company customer mapping');
     } finally {
       setLoading(false);
     }
   };
 
-  const gridHeight = 600;
+  const handleSearch = (searchTerm: string) => {
+    setGlobalFilter(searchTerm);
+    
+    // Update the datasource with new search term
+    if (gridRef.current) {
+      const api = gridRef.current.api;
+      const datasource = getServerSideDatasource(searchTerm);
+      api.setGridOption('serverSideDatasource', datasource);
+    }
+  };
+
+  // Handle grid ready event
+  const handleGridReady = useCallback((params: GridReadyEvent) => {
+    console.log('Grid ready event received');
+    
+    // Create and set the datasource
+    const datasource = getServerSideDatasource(globalFilter);
+    params.api!.setGridOption('serverSideDatasource', datasource);
+  }, [getServerSideDatasource, globalFilter]);
+
+  // Calculate dynamic height based on number of rows
+  const gridHeight = useMemo(() => {
+    const rowHeight = 42; // AG Grid default row height
+    const headerHeight = 48; // Header height
+    const paginationHeight = 56; // Pagination panel height
+    const padding = 16; // Extra padding
+    const pageSize = 10; // Default page size
+    
+    // Calculate height based on page size, but cap at reasonable max
+    const calculatedHeight = (pageSize * rowHeight) + headerHeight + paginationHeight + padding;
+    return Math.min(calculatedHeight, 600); // Max height of 600px
+  }, []);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Company Customer Mappings
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage mappings between companies and customers
-          </p>
-        </div>
-        <Button
-          onClick={() => router.push("/company-customer-mappings/add")}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Add Mapping
-        </Button>
+      <div className="py-2">         
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Company Customer Mappings
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage mappings between companies and customers
+        </p>
+        
+        {!canDeleteMapping && (
+          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-md">
+            <div className="flex items-center">
+              <svg className="h-5 w-5 text-yellow-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm">
+                <strong>Read-only mode:</strong> You can view and edit mappings, but cannot delete records.
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">Total Mappings</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{total}</div>
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">Active</div>
+      )}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 py-4">
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Total Mappings</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{total}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Active Mappings</div>
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totalActive}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">Inactive</div>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Inactive Mappings</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalInactive}</div>
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-800 dark:text-red-200">{error}</p>
+      {/* Filters */}
+      <div className="flex flex-col lg:flex-row gap-4 py-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search by company name..."
+            value={globalFilter}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="max-w-md"
+          />
         </div>
-      )}
-
-      {/* Search and Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Search by company name or customer name..."
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full"
-            />
-          </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            onClick={() => router.push('/port-customer-master/company-customer-mappings/add')}
+            className="flex items-center gap-2 bg-theme-purple-600 hover:bg-theme-purple-700 text-white whitespace-nowrap"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add Mapping
+          </Button>
         </div>
       </div>
 
@@ -539,11 +579,7 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
           // Server-side row model configuration
           rowModelType="serverSide"
           
-          // CRITICAL: Set serverSideStoreType to 'partial' for proper pagination
-          // @ts-ignore
-          serverSideStoreType="partial"
-          
-          // Cache configuration - MUST match pagination size
+          // Cache configuration - MUST match paginationPageSize
           cacheBlockSize={10} // Must match paginationPageSize
           maxBlocksInCache={10} // Keep multiple pages in cache
           
@@ -551,13 +587,6 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
           pagination={true}
           paginationPageSize={10} // Must match cacheBlockSize
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          
-          // CRITICAL: Enable server-side infinite scroll for proper pagination
-          serverSideInfiniteScroll={true}
-          
-          // Sorting and filtering on server
-          serverSideSortOnServer={true}
-          serverSideFilterOnServer={true}
           
           onGridReady={handleGridReady}
           domLayout="normal"
@@ -587,14 +616,19 @@ function CompanyCustomerMappingManager({ rbacContext }: CompanyCustomerMappingMa
           setDeletingItem(null);
         }}
         onConfirm={handleDeleteConfirm}
-        itemName={deletingItem?.company_name || "this mapping"}
+        title="Delete Company Customer Mapping"
+        message={`Are you sure you want to delete the mapping for "${deletingItem?.company_name}"? This action cannot be undone.`}
+        itemName={deletingItem?.company_name}
         isLoading={loading}
+        variant="danger"
       />
     </div>
   );
 }
 
 export default withSimplifiedRBAC(CompanyCustomerMappingManager, {
-  privilege: "VIEW_COMPANY_CUSTOMER_MAPPINGS"
+  privilege: "VIEW_COMPANY_CUSTOMER_MAPPINGS",
+  module: [66],
+  allowSuperUserBypass: true,
+  redirectTo: "/dashboard"
 });
-

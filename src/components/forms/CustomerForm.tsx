@@ -134,6 +134,16 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
 
   const isEditing = !!initialData;
 
+  // Auto-populate customer name from selected company
+  useEffect(() => {
+    if (selectedCompany?.name) {
+      setValue("name", selectedCompany.name, { shouldValidate: true, shouldDirty: true });
+    } else if (!selectedCompany) {
+      // Clear name when company is cleared
+      setValue("name", "", { shouldValidate: true, shouldDirty: true });
+    }
+  }, [selectedCompany, setValue]);
+
   useEffect(() => {
     if (initialData) {
       // If company_data is provided, set it for SearchableSelect
@@ -259,10 +269,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                   const companyObj = await companyService.getCompany(companyId);
                   setValue("company", companyId, { shouldValidate: true, shouldDirty: true });
                   setSelectedCompany(companyObj);
-                  // Auto-populate name from selected company if name field is empty
-                  // if (companyObj?.name && !watch("name")) {
-                  //   setValue("name", companyObj.name, { shouldValidate: true });
-                  // }
+                  // Customer name will be auto-populated via useEffect when selectedCompany changes
                 } catch (err) {
                   console.error("Failed to fetch company:", err);
                   // Still update the form value even if fetch fails
@@ -289,8 +296,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
             />
           </div>
           
-          {/* Customer Name */}
-          <div>
+          {/* Customer Name - Hidden but value is auto-populated from selected company */}
+          {/* <div>
             <Label>
               Customer Name <span className="text-red-500">*</span>
             </Label>
@@ -299,7 +306,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
               {...register("name")}
               error={errors.name?.message}
             />
-          </div>
+          </div> */}
           
           {/* Customer Code */}
           <div>
@@ -315,7 +322,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         </div>
         
         {/* Second row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           {/* Tax ID */}
           <div>
             <Label>

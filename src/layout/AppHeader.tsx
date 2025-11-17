@@ -2,7 +2,7 @@
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
-import Breadcrumb from "@/components/common/Breadcrumb";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import Image from "next/image";
@@ -46,31 +46,7 @@ const AppHeader: React.FC = () => {
     if (!user) return [];
     
     const items = [
-      {
-        id: "master-data",
-        name: "Master Data Management",
-        icon: <HiOutlineCircleStack className="w-5 h-5" />,
-        isActive: pathname.includes("/port-customer-master") || 
-                  pathname.includes("/container-types") ||
-                  pathname.includes("/container-priority") ||
-                  pathname.includes("/container-thresholds") ||
-                  pathname.includes("/company-management") ||
-                  pathname.includes("/company-customer-mappings") ||
-                  pathname.includes("/carrier-management") ||
-                  pathname.includes("/supplier-management"),
-        subItems: [
-          { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
-          { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
-          { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
-          { name: "Company", path: "/company-management", moduleId: 65 },
-          { name: "Company Customer Mappings", path: "/company-customer-mappings", moduleId: 66 },
-          { name: "Carrier", path: "/carrier-management", moduleId: 68 },
-          // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
-          // { name: "Container Types", path: "/container-types", moduleId: 50 },
-          // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
-          // { name: "Container Thresholds", path: "/container-thresholds", moduleId: 50 },
-        ],
-      },
+     
       {
         id: "vendor-booking",
         name: "Vendor Booking Management",
@@ -80,8 +56,8 @@ const AppHeader: React.FC = () => {
                   pathname.includes("/shipment-upload") ||
                   pathname.includes("/assignment-results"),
         subItems: [
-          { name: "Shipment Orders", path: "/", moduleId: 75 },
-          // { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
+          
+          { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
           // { name: "Shipment Operations", path: "/shipment-operations", moduleId: 75 },
           // { name: "Upload Shipments", path: "/shipment-upload", moduleId: 75 },
           // { name: "Assignment Results", path: "/assignment-results", moduleId: 75 },
@@ -100,7 +76,33 @@ const AppHeader: React.FC = () => {
           { name: "User Management", path: "/user-management", moduleId: 40 },
           { name: "Role Management", path: "/role-management", moduleId: 10 },
         ],
-      });
+      },
+      {
+        id: "master-data",
+        name: "Master Data Management",
+        icon: <HiOutlineCircleStack className="w-5 h-5" />,
+        isActive: pathname.includes("/port-customer-master") || 
+                  pathname.includes("/container-types") ||
+                  pathname.includes("/container-priority") ||
+                  pathname.includes("/container-thresholds") ||
+                  pathname.includes("/company-management") ||
+                       pathname.includes("/port-customer-master/company-customer-mappings") ||
+                  pathname.includes("/carrier-management") ||
+                  pathname.includes("/supplier-management"),
+        subItems: [
+          { name: "Company", path: "/company-management", moduleId: 65 },
+          { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
+          { name: "Company Customer Mappings", path: "/port-customer-master/company-customer-mappings", moduleId: 66 },
+          { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
+          { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
+          { name: "Carrier", path: "/carrier-management", moduleId: 68 },
+          // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
+          // { name: "Container Types", path: "/container-types", moduleId: 50 },
+          // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
+          // { name: "Container Thresholds", path: "/container-thresholds", moduleId: 50 },
+        ],
+      },
+    );
     }
 
     return items;
@@ -143,7 +145,7 @@ const AppHeader: React.FC = () => {
         </div>
 
         {/* Center - Desktop Navigation Menu */}
-        <nav className="hidden lg:flex items-center space-x-2 flex-1 justify-center">
+        <nav className={`hidden lg:flex items-center space-x-2 flex-1 ${isAdmin ? 'justify-center' : 'justify-start'}`}>
           {navItems.map((item) => {
             // Dropdown item
             return (
@@ -249,7 +251,7 @@ const AppHeader: React.FC = () => {
 
                   {/* Mobile Dropdown */}
                   {activeDropdown === item.id && (
-                    <div className="mt-2 ml-6 space-y-1">
+                    <div className="mt-2 ml-auto space-y-1">
                       {item.subItems.map((subItem) => (
                         <Link
                           key={subItem.path}
@@ -273,10 +275,6 @@ const AppHeader: React.FC = () => {
               ))}
             </nav>
 
-            {/* Mobile Breadcrumb */}
-            <div className="mt-4 pt-4 border-t border-brand-700">
-              <Breadcrumb />
-            </div>
           </div>
         </div>
       )}

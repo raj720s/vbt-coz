@@ -110,6 +110,13 @@ const NameRenderer = (params: ICellRendererParams) => {
     </span>
   );
 };
+const ParentRenderer = (params: ICellRendererParams) => {
+  return (
+    <span className="font-medium">
+      {params.value? params.value.name : 'N/A'}
+    </span>
+  );
+};
 
 interface CompanyManagerProps {
   rbacContext?: SimplifiedRBACProps['rbacContext'];
@@ -172,8 +179,8 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
           const requestParams: CompanyListRequest = {
             page: page,
             page_size: pageSize,
-            order_by: "name",
-            order_type: "asc"
+            order_by: "created_on",
+            order_type: "desc"
           };
 
           // Add search filter if present
@@ -356,6 +363,15 @@ function CompanyManager({ rbacContext }: CompanyManagerProps) {
       sortable: true,
       filter: false,
       cellRenderer: NameRenderer,
+    },
+    {
+      field: "parent_company",
+      headerName: "Parent Company",
+      minWidth: 200,
+      flex: 2,
+      sortable: true,
+      filter: false,
+      cellRenderer: ParentRenderer,
     },
     {
       field: "company_type",

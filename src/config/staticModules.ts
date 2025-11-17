@@ -117,7 +117,7 @@ export const staticModules: Record<number, StaticModule> = {
     id: 66,
     name: "Company Customer Mappings",
     description: "Manage mappings between companies and customers",
-    routes: ["/company-customer-mappings"],
+        routes: ["/port-customer-master/company-customer-mappings"],
     privileges: [
       "VIEW_COMPANY_CUSTOMER_MAPPINGS", "CREATE_COMPANY_CUSTOMER_MAPPING", "VIEW_COMPANY_CUSTOMER_MAPPING",
       "UPDATE_COMPANY_CUSTOMER_MAPPING", "DELETE_COMPANY_CUSTOMER_MAPPING", "EXPORT_COMPANY_CUSTOMER_MAPPINGS"
