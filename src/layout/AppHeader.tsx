@@ -47,26 +47,54 @@ const AppHeader: React.FC = () => {
     
     const items = [
      
-      {
-        id: "vendor-booking",
-        name: "Vendor Booking Management",
-        icon: <HiOutlineCalendar className="w-5 h-5" />,
-        isActive: pathname.includes("/shipment-orders") || 
-                  pathname.includes("/shipment-operations") ||
-                  pathname.includes("/shipment-upload") ||
-                  pathname.includes("/assignment-results"),
-        subItems: [
-          
-          { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
-          // { name: "Shipment Operations", path: "/shipment-operations", moduleId: 75 },
-          // { name: "Upload Shipments", path: "/shipment-upload", moduleId: 75 },
-          // { name: "Assignment Results", path: "/assignment-results", moduleId: 75 },
-        ],
-      },
+     
     ];
 
     if (isAdmin) {
-      items.push({
+
+      items.push(
+        {
+          id: "master-data",
+          name: "Master Data Management",
+          icon: <HiOutlineCircleStack className="w-5 h-5" />,
+          isActive: pathname.includes("/port-customer-master") || 
+                    pathname.includes("/container-types") ||
+                    pathname.includes("/container-priority") ||
+                    pathname.includes("/container-thresholds") ||
+                    pathname.includes("/company-management") ||
+                         pathname.includes("/port-customer-master/company-customer-mappings") ||
+                    pathname.includes("/carrier-management") ||
+                    pathname.includes("/supplier-management"),
+          subItems: [
+            { name: "Company", path: "/company-management", moduleId: 65 },
+            // { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
+            { name: "Company Customer Mappings", path: "/port-customer-master/company-customer-mappings", moduleId: 66 },
+            { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
+            { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
+            { name: "Carrier", path: "/carrier-management", moduleId: 68 },
+            // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
+            // { name: "Container Types", path: "/container-types", moduleId: 50 },
+            // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
+            // { name: "Container Thresholds", path: "/container-thresholds", moduleId: 50 },
+          ],
+        },
+        {
+          id: "vendor-booking",
+          name: "Vendor Booking Management",
+          icon: <HiOutlineCalendar className="w-5 h-5" />,
+          isActive: pathname.includes("/shipment-orders") || 
+                    pathname.includes("/shipment-operations") ||
+                    pathname.includes("/shipment-upload") ||
+                    pathname.includes("/assignment-results"),
+          subItems: [
+            
+            { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
+            // { name: "Shipment Operations", path: "/shipment-operations", moduleId: 75 },
+            // { name: "Upload Shipments", path: "/shipment-upload", moduleId: 75 },
+            // { name: "Assignment Results", path: "/assignment-results", moduleId: 75 },
+          ],
+        },
+        {
         id: "admin-config",
         name: "Admin Configuration",
         icon: <HiOutlineCog className="w-5 h-5" />,
@@ -77,32 +105,27 @@ const AppHeader: React.FC = () => {
           { name: "Role Management", path: "/role-management", moduleId: 10 },
         ],
       },
-      {
-        id: "master-data",
-        name: "Master Data Management",
-        icon: <HiOutlineCircleStack className="w-5 h-5" />,
-        isActive: pathname.includes("/port-customer-master") || 
-                  pathname.includes("/container-types") ||
-                  pathname.includes("/container-priority") ||
-                  pathname.includes("/container-thresholds") ||
-                  pathname.includes("/company-management") ||
-                       pathname.includes("/port-customer-master/company-customer-mappings") ||
-                  pathname.includes("/carrier-management") ||
-                  pathname.includes("/supplier-management"),
-        subItems: [
-          { name: "Company", path: "/company-management", moduleId: 65 },
-          { name: "Customer", path: "/port-customer-master/customers", moduleId: 60 },
-          { name: "Company Customer Mappings", path: "/port-customer-master/company-customer-mappings", moduleId: 66 },
-          { name: "Port Of Loading", path: "/port-customer-master/pol-ports", moduleId: 60 },
-          { name: "Port Of Discharge", path: "/port-customer-master/pod-ports", moduleId: 60 },
-          { name: "Carrier", path: "/carrier-management", moduleId: 68 },
-          // { name: "Supplier Management", path: "/supplier-management", moduleId: 69 },
-          // { name: "Container Types", path: "/container-types", moduleId: 50 },
-          // { name: "Container Priority", path: "/container-priority", moduleId: 50 },
-          // { name: "Container Thresholds", path: "/container-thresholds", moduleId: 50 },
-        ],
-      },
+     
     );
+    }else{
+      items.push(
+        {
+          id: "vendor-booking",
+          name: "Vendor Booking Management",
+          icon: <HiOutlineCalendar className="w-5 h-5" />,
+          isActive: pathname.includes("/shipment-orders") || 
+                    pathname.includes("/shipment-operations") ||
+                    pathname.includes("/shipment-upload") ||
+                    pathname.includes("/assignment-results"),
+          subItems: [
+            
+            { name: "Shipment Orders", path: "/shipment-orders", moduleId: 75 },
+            // { name: "Shipment Operations", path: "/shipment-operations", moduleId: 75 },
+            // { name: "Upload Shipments", path: "/shipment-upload", moduleId: 75 },
+            // { name: "Assignment Results", path: "/assignment-results", moduleId: 75 },
+          ],
+        },
+      )
     }
 
     return items;

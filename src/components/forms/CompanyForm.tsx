@@ -9,34 +9,39 @@ import toast from "react-hot-toast";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
-import Select from "@/components/form/select/SelectField";
+import Select from "@/components/form/Select";
+import SelectField from "@/components/form/select/SelectField";
 import CheckboxField from "@/components/form/checkbox/CheckboxField";
 import SearchableSelect from "@/components/form/input/SearchableSelect";
 import { Company, CompanyFormData, COMPANY_TYPES, COUNTRIES } from "@/types/company";
 import { companyService } from "@/services/companyService";
+import { CustomField } from "@/types/api";
+
+const customFieldSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(1, "Field name is required"),
+});
 
 // Validation schema
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required").max(255, "Company name must be less than 255 characters"),
   short_name: z.string().max(50, "Short name must be less than 50 characters").optional(),
-  company_type: z
-  .union([
+  company_type: z.union([
     z.literal(5),
     z.literal(10),
     z.literal(15),
     z.literal(20),
     z.literal(25),
-    z.null(),
-    z.undefined(),
-  ])
-  .refine((val) => val !== null && val !== undefined, {
-    message: "Company type is required",
-  }),
+  ]),
   country: z.string().max(100, "Country must be less than 100 characters").optional(),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
   phone: z.string().max(50, "Phone must be less than 50 characters").optional(),
   parent_company_id: z.number().nullable().optional(),
-  is_third_party: z.boolean(),
+  address: z.string().optional(),
+  contact_person: z.string().optional(),
+  custom_fields: z.array(customFieldSchema).max(5).optional(),
+  // Optional fields array for customer type (company_type === 20)
+  optional: z.array(z.string()).optional(),
 }).refine(
   (data) => {
     // Validation will be done in the component to access initialData
@@ -54,9 +59,31 @@ interface CompanyFormProps {
   isEditing?: boolean;
 }
 
+// List of optional field names
+const OPTIONAL_FIELDS = [
+  "notify_party1",
+  "notify_party2",
+  "hscode",
+  "cargo_description",
+  "marks_and_numbers",
+  "payment_terms",
+  "customer_reference",
+  "vendor_reference",
+  "agent_reference",
+  "place_of_receipt",
+  "port_of_loading",
+  "port_of_discharge",
+  "port_of_delivery",
+  "carrier",
+  "vessel_name",
+  "carrier_service_contract",
+];
+
 export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = false }: CompanyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedParentCompany, setSelectedParentCompany] = useState<{ id: number; name: string } | null>(null);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [selectedOptionalFields, setSelectedOptionalFields] = useState<string[]>(OPTIONAL_FIELDS);
 
   const {
     register,
@@ -70,14 +97,20 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
     defaultValues: {
       name: "",
       short_name: "",
-      company_type: undefined,
+      company_type: 5 as 5 | 10 | 15 | 20 | 25,
       country: "",
       email: "",
       phone: "",
       parent_company_id: null,
-      is_third_party: false,
+      address: "",
+      contact_person: "",
+      custom_fields: [],
+      optional: OPTIONAL_FIELDS,
     },
   });
+
+  const companyType = watch("company_type");
+  const isCustomerType = companyType === 20;
 
   // Load parent company details
   const loadParentCompany = async (id: number) => {
@@ -128,15 +161,65 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
         email: initialData.email,
         phone: initialData.phone || "",
         parent_company_id: parentCompanyId,
-        is_third_party: initialData.is_third_party,
+        address: (initialData as any).address || "",
+        contact_person: (initialData as any).contact_person || "",
+        custom_fields: (initialData as any).custom_fields || [],
+        optional: (initialData as any).optional || OPTIONAL_FIELDS,
       });
       
       // Load parent company details if ID exists
       if (parentCompanyId) {
         loadParentCompany(parentCompanyId);
       }
+
+      // Set custom fields if they exist
+      if ((initialData as any).custom_fields) {
+        setCustomFields((initialData as any).custom_fields);
+      }
+
+      // Set optional fields if they exist, otherwise default to all checked
+      if ((initialData as any).optional && Array.isArray((initialData as any).optional)) {
+        setSelectedOptionalFields((initialData as any).optional);
+      } else {
+        setSelectedOptionalFields(OPTIONAL_FIELDS);
+      }
+    } else {
+      setCustomFields([]);
+      setSelectedOptionalFields(OPTIONAL_FIELDS);
     }
   }, [initialData, reset]);
+
+  const addCustomField = () => {
+    if (customFields.length >= 5) {
+      return; // Maximum 5 custom fields allowed
+    }
+    const newField: CustomField = { name: "" };
+    setCustomFields([...customFields, newField]);
+  };
+
+  const removeCustomField = (index: number) => {
+    const updatedFields = customFields.filter((_, i) => i !== index);
+    setCustomFields(updatedFields);
+    setValue("custom_fields", updatedFields);
+  };
+
+  const updateCustomField = (index: number, fieldName: string) => {
+    const updatedFields = customFields.map((field, i) =>
+      i === index ? { ...field, name: fieldName } : field
+    );
+    setCustomFields(updatedFields);
+    setValue("custom_fields", updatedFields);
+  };
+
+  const handleOptionalFieldToggle = (fieldName: string) => {
+    setSelectedOptionalFields((prev) => {
+      if (prev.includes(fieldName)) {
+        return prev.filter((f) => f !== fieldName);
+      } else {
+        return [...prev, fieldName];
+      }
+    });
+  };
 
   const onSubmit = async (data: CompanyFormSchema) => {
     // Validate that company is not its own parent
@@ -148,12 +231,22 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
     setIsSubmitting(true);
     try {
       // Convert parent_company_id to string for API and always set is_active to true
+      // Include optional fields array if company type is customer
       const submitData: any = {
-        ...data,
+        name: data.name,
+        short_name: data.short_name,
+        company_type: data.company_type,
+        country: data.country,
+        email: data.email,
+        phone: data.phone,
         parent_company: data.parent_company_id ? data.parent_company_id.toString() : undefined,
         is_active: true, // Always set to true, status is managed via restore in data manager
       };
-      delete submitData.parent_company_id;
+
+      // Add optional fields array if company type is customer
+      if (isCustomerType && selectedOptionalFields.length > 0) {
+        submitData.optional = selectedOptionalFields;
+      }
 
       if (isEditing && initialData) {
         await companyService.updateCompany(initialData.id, submitData);
@@ -197,8 +290,8 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
             <Label>
               Company Type <span className="text-red-500">*</span>
             </Label>
-            <Select
-              // placeholder="Select company type"
+            <SelectField
+              placeholder="Select company type"
               {...register("company_type", { valueAsNumber: true })}
               error={errors.company_type?.message}
             >
@@ -207,7 +300,7 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
                   {type.label}
                 </option>
               ))}
-            </Select>
+            </SelectField>
           </div>
 
           {/* Short Name */}
@@ -250,17 +343,17 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
           <div>
             <Label>Country</Label>
             <Select
+              options={COUNTRIES.map(c => ({ value: c.value, label: c.label }))}
               placeholder="Select country"
-              {...register("country")}
-              error={errors.country?.message}
-            >
-              <option value="">Select country</option>
-              {COUNTRIES.map((country) => (
-                <option key={country.value} value={country.value}>
-                  {country.label}
-                </option>
-              ))}
-            </Select>
+              value={watch("country") || ""}
+              onChange={(value) => setValue("country", value)}
+              className={errors.country ? "border-red-500" : ""}
+            />
+            {errors.country && (
+              <p className="mt-1.5 text-xs text-red-500">
+                {errors.country.message}
+              </p>
+            )}
           </div>
 
           {/* Parent Company */}
@@ -305,22 +398,139 @@ export function CompanyForm({ initialData, onSuccess, onCancel, isEditing = fals
         </div>
       </section>
 
-      {/* ---------- SETTINGS ---------- */}
+      {/* ---------- CONTACT INFORMATION ---------- */}
       <section>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-          Settings
+          Contact Information
         </h2>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Contact Person */}
           <div>
-            <CheckboxField
-              label="Third Party Company"
-              {...register("is_third_party")}
-              error={errors.is_third_party?.message}
+            <Label>Contact Person</Label>
+            <Input
+              placeholder="Enter contact person name"
+              {...register("contact_person")}
+              error={errors.contact_person?.message}
             />
           </div>
         </div>
       </section>
+
+      {/* ---------- ADDRESS & LOCATION ---------- */}
+      <section>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+          Address & Location
+        </h2>
+
+        <div className="space-y-4">
+          {/* Address */}
+          <div>
+            <Label>Address</Label>
+            <Input
+              placeholder="Enter company address"
+              {...register("address")}
+              error={errors.address?.message}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- OPTIONAL FIELDS (Customer Type Only) ---------- */}
+      {isCustomerType && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            Optional Fields
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {OPTIONAL_FIELDS.map((fieldName) => {
+              const fieldLabel = fieldName
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+              
+              return (
+                <div key={fieldName}>
+                  <CheckboxField
+                    label={fieldLabel}
+                    checked={selectedOptionalFields.includes(fieldName)}
+                    onChange={() => handleOptionalFieldToggle(fieldName)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ---------- CUSTOM FIELDS (Customer Type Only) ---------- */}
+      {isCustomerType && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Custom Fields
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {customFields.length}/5 fields added
+                {customFields.length >= 5 && " (Maximum reached)"}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addCustomField}
+              disabled={isSubmitting || customFields.length >= 5}
+              className="text-sm"
+            >
+              + Add Field
+            </Button>
+          </div>
+
+          {customFields.length === 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic p-4 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+              No custom fields added yet. Click "Add Field" to add custom fields
+              (max 5).
+            </p>
+          )}
+
+          <div className="space-y-3">
+            {customFields.map((field, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800"
+              >
+                <div className="flex-1">
+                  <Label className="text-sm font-medium">
+                    Field Name {index + 1}
+                    {field.id && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
+                        (ID: {field.id})
+                      </span>
+                    )}
+                  </Label>
+                  <Input
+                    value={field.name}
+                    onChange={(e) => updateCustomField(index, e.target.value)}
+                    placeholder="e.g., Length, Width, Height"
+                    className="mt-1"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => removeCustomField(index)}
+                  disabled={isSubmitting}
+                  className="text-red-600 self-end hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ---------- BUTTONS ---------- */}
       <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
